@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
+  baseURL: (import.meta.env.VITE_API_URL ?? 'https://g3-sports-backend.onrender.com') + '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
