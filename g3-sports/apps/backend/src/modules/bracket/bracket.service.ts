@@ -120,7 +120,7 @@ export class BracketService {
       // Create the match for the next round
       const nextMatch = this.matchRepo.create({
         tournament: { id: bm.tournament.id } as any,
-        sport: bm.match?.sport,
+        sport: bm.match?.sport ?? bm.tournament.sport,
         status: MatchStatus.SCHEDULED,
         round: nextRound,
         socketRoom: `match:${bm.tournament.id}:r${nextRound}:p${next.position}`,
