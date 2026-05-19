@@ -176,8 +176,7 @@ npx typeorm migration:generate src/database/migrations/InitialSchema -d src/data
 }
 ```
 
-4. Update Render **Start Command** to: `node apps/backend/dist/database/run-migrations.js && node apps/backend/dist/main.js`  
-   *Or* use the `start:prod` npm script as the start command.
+4. Update Render **Start Command** to: `cd apps/backend && node -e "require('./dist/database/data-source').AppDataSource.initialize().then(ds=>ds.runMigrations()).then(()=>require('./dist/main'))"`
 
 5. After confirming tables created on Neon, never set `synchronize: true` in production again. All future schema changes go through `migration:generate` + `migration:run`.
 
