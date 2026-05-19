@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, ParseEnumPipe } from '@nestjs/common';
 import { TournamentsService } from './tournaments.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
@@ -11,8 +11,8 @@ export class TournamentsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() dto: CreateTournamentDto, @Request() req: { user: { sub: string } }) {
-    return this.svc.create(dto, req.user.sub);
+  create(@Body() dto: CreateTournamentDto, @Request() req: { user: { id: string } }) {
+    return this.svc.create(dto, req.user.id);
   }
 
   @Get()
@@ -27,14 +27,14 @@ export class TournamentsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() dto: UpdateTournamentDto, @Request() req: { user: { sub: string } }) {
-    return this.svc.update(id, dto, req.user.sub);
+  update(@Param('id') id: string, @Body() dto: UpdateTournamentDto, @Request() req: { user: { id: string } }) {
+    return this.svc.update(id, dto, req.user.id);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string, @Request() req: { user: { sub: string } }) {
-    return this.svc.remove(id, req.user.sub);
+  remove(@Param('id') id: string, @Request() req: { user: { id: string } }) {
+    return this.svc.remove(id, req.user.id);
   }
 
   @Post(':id/register-team/:teamId')
@@ -50,7 +50,11 @@ export class TournamentsController {
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
-  updateStatus(@Param('id') id: string, @Body('status') status: TournamentStatus, @Request() req: { user: { sub: string } }) {
-    return this.svc.updateStatus(id, status, req.user.sub);
+  updateStatus(
+    @Param('id') id: string,
+    @Body('status', new ParseEnumPipe(TournamentStatus)) status: TournamentStatus,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.svc.updateStatus(id, status, req.user.id);
   }
 }

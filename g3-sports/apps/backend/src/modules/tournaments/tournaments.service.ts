@@ -40,9 +40,10 @@ export class TournamentsService {
   async update(id: string, dto: UpdateTournamentDto, userId: string): Promise<Tournament> {
     const t = await this.findOne(id);
     if (t.organizer.id !== userId) throw new ForbiddenException();
-    Object.assign(t, dto);
-    if (dto.startDate) t.startDate = new Date(dto.startDate);
-    if (dto.endDate) t.endDate = new Date(dto.endDate);
+    const { startDate, endDate, ...rest } = dto;
+    Object.assign(t, rest);
+    if (startDate) t.startDate = new Date(startDate);
+    if (endDate) t.endDate = new Date(endDate);
     return this.tournamentRepo.save(t);
   }
 
