@@ -5,12 +5,26 @@ import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { CheckUsernameDto } from './dto/check-username.dto';
 import { SuggestUsernamesDto } from './dto/suggest-usernames.dto';
+import { AdminLoginDto } from './dto/admin-login.dto';
+import { AdminSetupDto } from './dto/admin-setup.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { User } from '../../database/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
+
+  /** One-time setup — creates the first super_admin. Blocked once an admin exists. */
+  @Post('admin/setup')
+  adminSetup(@Body() dto: AdminSetupDto) {
+    return this.auth.adminSetup(dto);
+  }
+
+  /** Admin dashboard login — email + password, returns access_token. */
+  @Post('admin/login')
+  adminLogin(@Body() dto: AdminLoginDto) {
+    return this.auth.adminLogin(dto);
+  }
 
   @Post('send-otp')
   @Throttle({ default: { ttl: 60000, limit: 5 } })

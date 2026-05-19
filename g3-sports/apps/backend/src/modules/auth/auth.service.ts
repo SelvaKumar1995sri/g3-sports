@@ -1,15 +1,18 @@
 import {
-  Injectable, UnauthorizedException, Logger,
+  Injectable, UnauthorizedException, ForbiddenException, Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as admin from 'firebase-admin';
+import * as bcrypt from 'bcrypt';
 import { UserRole, AuthTokens } from '@g3/types';
 import { User } from '../../database/entities/user.entity';
 import { UserProfile } from '../../database/entities/user-profile.entity';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { AdminLoginDto } from './dto/admin-login.dto';
+import { AdminSetupDto } from './dto/admin-setup.dto';
 
 @Injectable()
 export class AuthService {
@@ -89,6 +92,49 @@ export class AuthService {
       }
     }
     return { suggestions: suggestions.slice(0, 2) };
+  }
+
+  async adminSetup(dto: AdminSetupDto): Promise<{ message: string }> {
+    const existing = await this.users.findOne({
+      where: { role: UserRole.SUPER_ADMIN },
+    });
+    if (existing) {
+      throw new ForbiddenException('Admin already exists. Use the login endpoint.');
+    }
+    const hashed = await bcrypt.hash(dto.password, 12);
+    const user = this.users.create({
+      email: dto.email,
+      password: hashed,
+      fullName: dto.displayName,
+      role: UserRole.SUPER_ADMIN,
+      isActive: true,
+    });
+    await this.users.save(user);
+    this.logger.log(`Super admin created: ${dto.email}`);
+    return { message: 'Admin created successfully. You can now login.' };
+  }
+
+  async adminLogin(dto: AdminLoginDto): Promise<{ access_token: string; user: Record<string, unknown> }> {
+    const user = await this.users.findOne({
+      where: { email: dto.email, role: UserRole.SUPER_ADMIN, isActive: true },
+    });
+    if (!user || !user.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const tokens = await this.issueTokens(user);
+    return {
+      access_token: tokens.accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        displayName: user.fullName ?? 'Admin',
+      },
+    };
   }
 
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {

@@ -12,8 +12,16 @@ export class User {
   id: string;
 
   @Index({ unique: true })
-  @Column({ unique: true })
-  phone: string;
+  @Column({ unique: true, nullable: true })
+  phone: string | null;
+
+  @Index({ unique: true })
+  @Column({ unique: true, nullable: true })
+  email: string | null;
+
+  @Exclude()
+  @Column({ nullable: true })
+  password: string | null;
 
   @Index({ unique: true })
   @Column({ unique: true, nullable: true })

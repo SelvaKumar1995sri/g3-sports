@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       login: async (email, password) => {
-        const { data } = await api.post<{ access_token: string; user: AdminUser }>('/auth/login', { email, password });
+        const { data } = await api.post<{ access_token: string; user: AdminUser }>('/auth/admin/login', { email, password });
         localStorage.setItem('g3_admin_token', data.access_token);
         set({ token: data.access_token, user: data.user });
       },
