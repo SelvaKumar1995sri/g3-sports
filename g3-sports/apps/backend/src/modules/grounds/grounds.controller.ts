@@ -27,11 +27,13 @@ export class GroundsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() dto: Partial<CreateGroundDto>) {
-    return this.svc.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: Partial<CreateGroundDto>, @Request() req: { user: { id: string } }) {
+    return this.svc.update(id, dto, req.user.id);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) { return this.svc.remove(id); }
+  remove(@Param('id') id: string, @Request() req: { user: { id: string } }) {
+    return this.svc.remove(id, req.user.id);
+  }
 }

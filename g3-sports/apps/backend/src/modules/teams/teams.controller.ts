@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { TeamsService } from './teams.service';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { AddMemberDto } from './dto/add-member.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { TeamMemberRole } from '@g3/types';
 
 @Controller('teams')
 export class TeamsController {
@@ -28,10 +28,7 @@ export class TeamsController {
 
   @Post(':id/members')
   @UseGuards(JwtAuthGuard)
-  addMember(
-    @Param('id') id: string,
-    @Body() body: { userId: string; role: TeamMemberRole; jerseyNumber?: number },
-  ) {
+  addMember(@Param('id') id: string, @Body() body: AddMemberDto) {
     return this.svc.addMember(id, body.userId, body.role, body.jerseyNumber);
   }
 

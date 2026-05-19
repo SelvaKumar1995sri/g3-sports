@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ground } from '../../database/entities/ground.entity';
@@ -31,8 +31,9 @@ export class GroundsService {
     return g;
   }
 
-  async update(id: string, dto: Partial<CreateGroundDto>): Promise<Ground> {
+  async update(id: string, dto: Partial<CreateGroundDto>, userId: string): Promise<Ground> {
     const g = await this.findOne(id);
+    if (g.owner.id !== userId) throw new ForbiddenException('Only the ground owner can update it');
     if (dto.name !== undefined) g.name = dto.name;
     if (dto.sportType !== undefined) g.sportType = dto.sportType;
     if (dto.isAvailable !== undefined) g.isAvailable = dto.isAvailable;
@@ -43,8 +44,9 @@ export class GroundsService {
     return this.repo.save(g);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, userId: string): Promise<void> {
     const g = await this.findOne(id);
+    if (g.owner.id !== userId) throw new ForbiddenException('Only the ground owner can delete it');
     await this.repo.remove(g);
   }
 
