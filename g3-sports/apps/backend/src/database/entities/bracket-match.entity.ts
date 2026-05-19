@@ -15,9 +15,9 @@ export class BracketMatch {
   tournament: Tournament;
 
   @Index()
-  @ManyToOne(() => Match)
+  @ManyToOne(() => Match, { nullable: true, eager: false })
   @JoinColumn({ name: 'match_id' })
-  match: Match;
+  match: Match | null;
 
   @Column()
   round: string;

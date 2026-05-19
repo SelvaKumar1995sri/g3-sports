@@ -6,6 +6,13 @@ import { AuthModule } from './modules/auth/auth.module';       // created in Tas
 import { UsersModule } from './modules/users/users.module';    // created in Task 7
 import { UploadModule } from './modules/upload/upload.module'; // created in Task 9
 import { GatewayModule } from './modules/gateway/gateway.module'; // created in Task 8
+import { TournamentsModule } from './modules/tournaments/tournaments.module';
+import { BracketModule } from './modules/bracket/bracket.module';
+import { GroundsModule } from './modules/grounds/grounds.module';
+import { TeamsModule } from './modules/teams/teams.module';
+import { MatchesModule } from './modules/matches/matches.module';
+import { ScoreModule } from './modules/score/score.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -16,6 +23,13 @@ import { GatewayModule } from './modules/gateway/gateway.module'; // created in 
     UsersModule,
     UploadModule,
     GatewayModule,
+    TournamentsModule,
+    BracketModule,
+    GroundsModule,
+    TeamsModule,
+    MatchesModule,
+    ScoreModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
