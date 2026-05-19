@@ -8,7 +8,17 @@
       "Bash(pnpm install *)",
       "Bash(npx tsc *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "PowerShell(Get-ChildItem \"D:\\\\Version_6.36\\\\selva\\\\G4_SportsForce\\\\g3-sports\" -Recurse -Depth 3 | Where-Object { $_.PSIsContainer } | Select-Object FullName | Head -20)",
+      "Bash(pnpm build *)",
+      "Bash(git commit *)",
+      "Bash(pnpm add *)",
+      "Bash(git ls-tree *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(Write-Host \"BUILD_DONE\")",
+      "Bash(echo \"BUILD_EXIT:$?\")",
+      "Bash(pnpm approve-builds *)",
+      "PowerShell(cd \"D:\\\\Version_6.36\\\\selva\\\\G4_SportsForce\\\\g3-sports\\\\apps\\\\backend\"; pnpm build; Write-Host \"Exit: $LASTEXITCODE\")"
     ]
   }
 }
