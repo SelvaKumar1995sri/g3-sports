@@ -32,12 +32,12 @@ export function Navbar() {
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/admin/login"
+          <a
+            href={process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:5174'}
             className="text-xs border border-cyan/30 text-cyan px-4 py-2 rounded-full hover:bg-cyan/10 transition-colors"
           >
             Admin
-          </Link>
+          </a>
         </div>
 
         {/* Mobile hamburger */}
