@@ -45,13 +45,13 @@ export class Match {
   @JoinColumn({ name: 'winner_id' })
   winner: Team | null;
 
-  @Column({ name: 'scheduled_at', nullable: true })
+  @Column({ name: 'scheduled_at', type: 'timestamptz', nullable: true })
   scheduledAt: Date | null;
 
-  @Column({ name: 'started_at', nullable: true })
+  @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
   startedAt: Date | null;
 
-  @Column({ name: 'completed_at', nullable: true })
+  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt: Date | null;
 
   @Column({ name: 'socket_room', type: 'varchar', nullable: true })
