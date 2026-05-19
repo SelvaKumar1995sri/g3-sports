@@ -19,15 +19,15 @@ export class TournamentTeam {
   @JoinColumn({ name: 'team_id' })
   team: Team;
 
-  @Column({ name: 'group_name', nullable: true })
+  @Column({ name: 'group_name', type: 'varchar', nullable: true })
   groupName: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   seed: number | null;
 
   @Column({ name: 'is_eliminated', default: false })
   isEliminated: boolean;
 
-  @Column({ name: 'elimination_round', nullable: true })
+  @Column({ name: 'elimination_round', type: 'varchar', nullable: true })
   eliminationRound: string | null;
 }

@@ -12,25 +12,25 @@ export class User {
   id: string;
 
   @Index({ unique: true })
-  @Column({ unique: true, nullable: true })
+  @Column({ type: 'varchar', unique: true, nullable: true })
   phone: string | null;
 
   @Index({ unique: true })
-  @Column({ unique: true, nullable: true })
+  @Column({ type: 'varchar', unique: true, nullable: true })
   email: string | null;
 
   @Exclude()
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   password: string | null;
 
   @Index({ unique: true })
-  @Column({ unique: true, nullable: true })
+  @Column({ type: 'varchar', unique: true, nullable: true })
   username: string | null;
 
-  @Column({ name: 'full_name', nullable: true })
+  @Column({ name: 'full_name', type: 'varchar', nullable: true })
   fullName: string | null;
 
-  @Column({ name: 'avatar_url', nullable: true })
+  @Column({ name: 'avatar_url', type: 'varchar', nullable: true })
   avatarUrl: string | null;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.PLAYER })
@@ -40,7 +40,7 @@ export class User {
   isActive: boolean;
 
   @Exclude()
-  @Column({ name: 'firebase_uid', unique: true, nullable: true })
+  @Column({ name: 'firebase_uid', type: 'varchar', unique: true, nullable: true })
   firebaseUid: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

@@ -19,10 +19,10 @@ export class BracketMatch {
   @JoinColumn({ name: 'match_id' })
   match: Match | null;
 
-  @Column()
+  @Column({ type: 'varchar' })
   round: string;
 
-  @Column()
+  @Column({ type: 'int' })
   position: number;
 
   @ManyToOne(() => BracketMatch, { nullable: true })

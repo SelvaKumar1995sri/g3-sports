@@ -17,10 +17,10 @@ export class Notification {
   @Column({ type: 'enum', enum: NotificationType })
   type: NotificationType;
 
-  @Column()
+  @Column({ type: 'varchar' })
   title: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   body: string;
 
   @Column({ name: 'is_read', default: false })

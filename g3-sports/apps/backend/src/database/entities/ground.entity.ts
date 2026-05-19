@@ -18,13 +18,13 @@ export class Ground {
   @JoinColumn({ name: 'tournament_id' })
   tournament: Tournament | null;
 
-  @Column()
+  @Column({ type: 'varchar' })
   name: string;
 
   @Column({ name: 'sport_type', type: 'enum', enum: SportType })
   sportType: SportType;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   capacity: number | null;
 
   @Column({ name: 'is_available', default: true })

@@ -13,7 +13,7 @@ export class Tournament {
   @JoinColumn({ name: 'organizer_id' })
   organizer: User;
 
-  @Column()
+  @Column({ type: 'varchar' })
   name: string;
 
   @Column({ type: 'enum', enum: SportType })
@@ -25,7 +25,7 @@ export class Tournament {
   @Column({ type: 'enum', enum: TournamentStatus, default: TournamentStatus.DRAFT })
   status: TournamentStatus;
 
-  @Column({ name: 'banner_url', nullable: true })
+  @Column({ name: 'banner_url', type: 'varchar', nullable: true })
   bannerUrl: string | null;
 
   @Column({ name: 'start_date', type: 'date', nullable: true })

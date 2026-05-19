@@ -14,16 +14,16 @@ export class Team {
   owner: User;
 
   @Index()
-  @Column()
+  @Column({ type: 'varchar' })
   name: string;
 
-  @Column({ name: 'logo_url', nullable: true })
+  @Column({ name: 'logo_url', type: 'varchar', nullable: true })
   logoUrl: string | null;
 
-  @Column({ name: 'banner_url', nullable: true })
+  @Column({ name: 'banner_url', type: 'varchar', nullable: true })
   bannerUrl: string | null;
 
-  @Column({ name: 'theme_color', nullable: true })
+  @Column({ name: 'theme_color', type: 'varchar', nullable: true })
   themeColor: string | null;
 
   @Column({ type: 'enum', enum: SportType })
@@ -33,10 +33,10 @@ export class Team {
   @JoinColumn({ name: 'captain_id' })
   captain: User | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   nickname: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   description: string | null;
 
   @Column({ name: 'sponsor_info', type: 'jsonb', nullable: true })

@@ -38,7 +38,7 @@ export class Match {
   @Column({ type: 'enum', enum: MatchStatus, default: MatchStatus.SCHEDULED })
   status: MatchStatus;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   round: string | null;
 
   @ManyToOne(() => Team, { nullable: true })
@@ -54,6 +54,6 @@ export class Match {
   @Column({ name: 'completed_at', nullable: true })
   completedAt: Date | null;
 
-  @Column({ name: 'socket_room', nullable: true })
+  @Column({ name: 'socket_room', type: 'varchar', nullable: true })
   socketRoom: string | null;
 }

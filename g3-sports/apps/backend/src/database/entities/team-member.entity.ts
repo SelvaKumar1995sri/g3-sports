@@ -23,7 +23,7 @@ export class TeamMember {
   @Column({ type: 'enum', enum: TeamMemberRole, default: TeamMemberRole.PLAYER })
   role: TeamMemberRole;
 
-  @Column({ name: 'jersey_number', nullable: true })
+  @Column({ name: 'jersey_number', type: 'int', nullable: true })
   jerseyNumber: number | null;
 
   @Column({ name: 'is_active', default: true })
