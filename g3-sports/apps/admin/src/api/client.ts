@@ -12,7 +12,14 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // Backend wraps all responses as { data: T, timestamp: string }
+    // Unwrap so callers get the inner data directly
+    if (res.data && typeof res.data === 'object' && 'data' in res.data && 'timestamp' in res.data) {
+      res.data = res.data.data;
+    }
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('g3_admin_token');
