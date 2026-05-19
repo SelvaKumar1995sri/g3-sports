@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Match } from '../../database/entities/match.entity';
 import { Ground } from '../../database/entities/ground.entity';
+import { User } from '../../database/entities/user.entity';
 import { MatchStatus } from '@g3/types';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { TossDto } from './dto/toss.dto';
@@ -48,13 +49,15 @@ export class MatchesService {
 
   async assignScorer(matchId: string, scorerId: string): Promise<Match> {
     const m = await this.findOne(matchId);
-    m.scorer = { id: scorerId } as any;
+    m.scorer = { id: scorerId } as User;
     return this.matchRepo.save(m);
   }
 
   async recordToss(matchId: string, dto: TossDto): Promise<Match> {
     const m = await this.findOne(matchId);
     if (m.status !== MatchStatus.SCHEDULED) throw new BadRequestException('Toss only before match starts');
+    // Note: Match entity has no toss columns; toss outcome is not persisted
+    // To persist toss data, add tossWinnerId (FK) and tossDecision columns to the entity
     m.status = MatchStatus.LIVE;
     return this.matchRepo.save(m);
   }
