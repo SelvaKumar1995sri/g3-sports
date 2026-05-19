@@ -24,20 +24,36 @@ export class AuthService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(UserProfile) private readonly profiles: Repository<UserProfile>,
   ) {
-    if (!admin.apps.length) {
+    const firebaseProjectId = cfg.get<string>('FIREBASE_PROJECT_ID');
+    const firebasePrivateKey = cfg.get<string>('FIREBASE_PRIVATE_KEY');
+    const firebaseClientEmail = cfg.get<string>('FIREBASE_CLIENT_EMAIL');
+
+    if (
+      !admin.apps.length &&
+      firebaseProjectId &&
+      firebaseProjectId !== 'placeholder' &&
+      firebasePrivateKey &&
+      firebasePrivateKey !== 'placeholder' &&
+      firebaseClientEmail &&
+      firebaseClientEmail !== 'placeholder@placeholder.com'
+    ) {
       admin.initializeApp({
         credential: admin.credential.cert({
-          projectId: cfg.getOrThrow('FIREBASE_PROJECT_ID'),
-          privateKey: cfg
-            .getOrThrow<string>('FIREBASE_PRIVATE_KEY')
-            .replace(/\\n/g, '\n'),
-          clientEmail: cfg.getOrThrow('FIREBASE_CLIENT_EMAIL'),
+          projectId: firebaseProjectId,
+          privateKey: firebasePrivateKey.replace(/\\n/g, '\n'),
+          clientEmail: firebaseClientEmail,
         }),
       });
+      this.logger.log('Firebase Admin initialized');
+    } else {
+      this.logger.warn('Firebase Admin NOT initialized — OTP login disabled (placeholder credentials)');
     }
   }
 
   async verifyOtp(dto: VerifyOtpDto): Promise<AuthTokens & { user: User }> {
+    if (!admin.apps.length) {
+      throw new UnauthorizedException('Firebase OTP login is not configured on this server');
+    }
     let decoded: admin.auth.DecodedIdToken;
     try {
       decoded = await admin.auth().verifyIdToken(dto.idToken);
