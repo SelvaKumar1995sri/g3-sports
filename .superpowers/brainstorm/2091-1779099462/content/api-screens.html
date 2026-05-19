@@ -1,0 +1,193 @@
+<style>
+:root{--bg:#0A0E1A;--cyan:#00E5FF;--lime:#CCFF00;--pink:#FF4D6D;--card:#111827;--border:rgba(255,255,255,0.08);--muted:#6B7280}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section-block{margin-bottom:16px}
+.sec-title{font-size:9px;font-weight:700;letter-spacing:2px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* API modules */
+.api-module{background:var(--card);border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid var(--border)}
+.api-mod-header{padding:6px 10px;font-size:9px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.api-routes{padding:4px 0}
+.route{display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:8px;border-bottom:1px solid rgba(255,255,255,.03)}
+.route:last-child{border-bottom:none}
+.method{font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;min-width:32px;text-align:center;flex-shrink:0}
+.get{background:rgba(0,229,255,.15);color:var(--cyan)}
+.post{background:rgba(204,255,0,.15);color:var(--lime)}
+.put{background:rgba(255,183,0,.15);color:#FFB700}
+.del{background:rgba(255,77,109,.15);color:var(--pink)}
+.patch{background:rgba(147,51,234,.2);color:#A78BFA}
+.ws{background:rgba(255,77,109,.2);color:var(--pink)}
+.route-path{color:rgba(255,255,255,.7);flex:1;font-family:monospace}
+.route-desc{color:var(--muted);font-size:7px;margin-left:auto}
+.auth-badge{font-size:6px;padding:1px 4px;border-radius:2px;background:rgba(255,183,0,.15);color:#FFB700;flex-shrink:0}
+
+/* Screen map */
+.screen-map{display:flex;flex-direction:column;gap:10px}
+.flow-section{background:var(--card);border-radius:8px;border:1px solid var(--border);overflow:hidden}
+.flow-header{padding:6px 10px;font-size:9px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.screens-row{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px}
+.screen-chip{border-radius:5px;padding:4px 8px;font-size:8px;font-weight:600;border:1px solid transparent;cursor:default}
+.screen-sub{font-size:6px;font-weight:400;opacity:.7;display:block;margin-top:1px}
+.role-tag{font-size:6px;padding:1px 5px;border-radius:10px;font-weight:700;margin-left:4px}
+</style>
+
+<h2>Section 3 — API Modules & Screen Map</h2>
+<p class="subtitle">NestJS REST + WebSocket endpoints · All Flutter app screens by user role</p>
+
+<div class="two-col">
+
+  <!-- LEFT: API Modules -->
+  <div>
+    <div class="sec-title" style="color:var(--pink)">⚡ NESTJS API MODULES</div>
+
+    <div class="api-module">
+      <div class="api-mod-header" style="background:rgba(0,229,255,.08);color:var(--cyan)">🔐 Auth Module — /api/auth</div>
+      <div class="api-routes">
+        <div class="route"><span class="method post">POST</span><span class="route-path">/send-otp</span><span class="route-desc">Send OTP via Firebase</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/verify-otp</span><span class="route-desc">Verify + issue JWT</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/check-username</span><span class="route-desc">Real-time availability</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/suggest-usernames</span><span class="route-desc">Auto-suggest 2 names</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/refresh-token</span><span class="route-desc">Refresh JWT</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/logout</span><span class="auth-badge">JWT</span><span class="route-desc">Revoke session</span></div>
+      </div>
+    </div>
+
+    <div class="api-module">
+      <div class="api-mod-header" style="background:rgba(204,255,0,.07);color:var(--lime)">🏆 Tournament Module — /api/tournaments</div>
+      <div class="api-routes">
+        <div class="route"><span class="method get">GET</span><span class="route-path">/</span><span class="route-desc">List tournaments (filters)</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/</span><span class="auth-badge">ORG</span><span class="route-desc">Create tournament</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id</span><span class="route-desc">Tournament detail</span></div>
+        <div class="route"><span class="method put">PUT</span><span class="route-path">/:id</span><span class="auth-badge">ORG</span><span class="route-desc">Update tournament</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id/bracket</span><span class="route-desc">Full bracket tree</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/:id/generate-bracket</span><span class="auth-badge">ORG</span><span class="route-desc">Auto-generate bracket</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/:id/teams</span><span class="auth-badge">ORG</span><span class="route-desc">Add team to tournament</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id/standings</span><span class="route-desc">Points table / standings</span></div>
+      </div>
+    </div>
+
+    <div class="api-module">
+      <div class="api-mod-header" style="background:rgba(204,255,0,.07);color:var(--lime)">🏟️ Grounds Module — /api/grounds</div>
+      <div class="api-routes">
+        <div class="route"><span class="method post">POST</span><span class="route-path">/</span><span class="auth-badge">ORG</span><span class="route-desc">Create ground/court</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/my-grounds</span><span class="auth-badge">ORG</span><span class="route-desc">Owner's grounds</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id/schedule</span><span class="route-desc">Ground match calendar</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id/live</span><span class="route-desc">Current live match on ground</span></div>
+      </div>
+    </div>
+
+    <div class="api-module">
+      <div class="api-mod-header" style="background:rgba(255,77,109,.08);color:var(--pink)">🏏 Matches Module — /api/matches</div>
+      <div class="api-routes">
+        <div class="route"><span class="method post">POST</span><span class="route-path">/</span><span class="auth-badge">ORG</span><span class="route-desc">Schedule match</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/live</span><span class="route-desc">All live matches</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id</span><span class="route-desc">Match detail + scores</span></div>
+        <div class="route"><span class="method patch">PATCH</span><span class="route-path">/:id/status</span><span class="auth-badge">SCR</span><span class="route-desc">Start/pause/end match</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/:id/toss</span><span class="auth-badge">SCR</span><span class="route-desc">Record toss result</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/:id/score</span><span class="auth-badge">SCR</span><span class="route-desc">Record ball/point/rally</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/:id/score/undo</span><span class="auth-badge">SCR</span><span class="route-desc">Undo last action</span></div>
+        <div class="route"><span class="method ws">WS</span><span class="route-path">match:{id}</span><span class="route-desc">Real-time score room</span></div>
+      </div>
+    </div>
+
+    <div class="api-module">
+      <div class="api-mod-header" style="background:rgba(255,77,109,.08);color:var(--pink)">👕 Teams Module — /api/teams</div>
+      <div class="api-routes">
+        <div class="route"><span class="method post">POST</span><span class="route-path">/</span><span class="auth-badge">JWT</span><span class="route-desc">Create team</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id</span><span class="route-desc">Team profile + stats</span></div>
+        <div class="route"><span class="method put">PUT</span><span class="route-path">/:id/branding</span><span class="auth-badge">OWN</span><span class="route-desc">Update logo/banner/colors</span></div>
+        <div class="route"><span class="method post">POST</span><span class="route-path">/:id/members</span><span class="auth-badge">OWN</span><span class="route-desc">Add player to team</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/:id/stats</span><span class="route-desc">Team career stats</span></div>
+      </div>
+    </div>
+
+    <div class="api-module">
+      <div class="api-mod-header" style="background:rgba(255,255,255,.05);color:#fff">📊 Analytics — /api/analytics</div>
+      <div class="api-routes">
+        <div class="route"><span class="method get">GET</span><span class="route-path">/dashboard</span><span class="auth-badge">ADMIN</span><span class="route-desc">Super admin overview</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/player/:id</span><span class="auth-badge">JWT</span><span class="route-desc">Player career stats</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/tournament/:id</span><span class="route-desc">Tournament analytics</span></div>
+        <div class="route"><span class="method get">GET</span><span class="route-path">/leaderboard</span><span class="route-desc">Global rankings</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Screen Map -->
+  <div>
+    <div class="sec-title" style="color:var(--cyan)">📱 FLUTTER APP — ALL SCREENS</div>
+    <div class="screen-map">
+
+      <div class="flow-section">
+        <div class="flow-header" style="background:rgba(0,229,255,.08);color:var(--cyan)">🚀 Onboarding Flow</div>
+        <div class="screens-row">
+          <div class="screen-chip" style="background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.2);color:#fff">Splash Screen<span class="screen-sub">Brand animation</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.2);color:#fff">Phone Entry<span class="screen-sub">+91 · OTP trigger</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.2);color:#fff">OTP Verify<span class="screen-sub">6-digit · auto-read</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.2);color:#fff">Create Username<span class="screen-sub">Real-time check</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.2);color:#fff">Select Role<span class="screen-sub">Player / Coach / Organizer</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.2);color:#fff">Sport Preference<span class="screen-sub">Cricket/Badminton/Pickleball</span></div>
+        </div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-header" style="background:rgba(204,255,0,.07);color:var(--lime)">🏠 Home Tab <span class="role-tag" style="background:rgba(255,255,255,.1);color:#fff">ALL ROLES</span></div>
+        <div class="screens-row">
+          <div class="screen-chip" style="background:rgba(204,255,0,.06);border-color:rgba(204,255,0,.15);color:#fff">Home Feed<span class="screen-sub">Live matches · Upcoming · News</span></div>
+          <div class="screen-chip" style="background:rgba(204,255,0,.06);border-color:rgba(204,255,0,.15);color:#fff">Search<span class="screen-sub">Teams · Players · Tournaments</span></div>
+          <div class="screen-chip" style="background:rgba(204,255,0,.06);border-color:rgba(204,255,0,.15);color:#fff">Notifications<span class="screen-sub">Match alerts · Updates</span></div>
+        </div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-header" style="background:rgba(255,77,109,.08);color:var(--pink)">⚡ Live Match Tab <span class="role-tag" style="background:rgba(255,255,255,.1);color:#fff">ALL ROLES</span></div>
+        <div class="screens-row">
+          <div class="screen-chip" style="background:rgba(255,77,109,.07);border-color:rgba(255,77,109,.2);color:#fff">Live Matches List<span class="screen-sub">All grounds · Filter by sport</span></div>
+          <div class="screen-chip" style="background:rgba(255,77,109,.07);border-color:rgba(255,77,109,.2);color:#fff">Match Scoreboard<span class="screen-sub">Team Card View · Real-time</span></div>
+          <div class="screen-chip" style="background:rgba(255,77,109,.07);border-color:rgba(255,77,109,.2);color:#fff">Ball-by-Ball Feed<span class="screen-sub">Live commentary timeline</span></div>
+          <div class="screen-chip" style="background:rgba(255,77,109,.07);border-color:rgba(255,77,109,.2);color:#fff">Match Stats<span class="screen-sub">Batting · Bowling · Sets</span></div>
+          <div class="screen-chip" style="background:rgba(255,77,109,.07);border-color:rgba(255,77,109,.2);color:#fff">Public Scoreboard<span class="screen-sub">TV / Projector fullscreen</span></div>
+        </div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-header" style="background:rgba(204,255,0,.1);color:var(--lime)">🎯 Score Tab (FAB) <span class="role-tag" style="background:rgba(255,77,109,.2);color:var(--pink)">SCORER ONLY</span></div>
+        <div class="screens-row">
+          <div class="screen-chip" style="background:rgba(204,255,0,.08);border-color:rgba(204,255,0,.25);color:#fff">My Assigned Matches<span class="screen-sub">Scorer's queue</span></div>
+          <div class="screen-chip" style="background:rgba(204,255,0,.08);border-color:rgba(204,255,0,.25);color:#fff">Toss Screen<span class="screen-sub">Coin toss · Team choice</span></div>
+          <div class="screen-chip" style="background:rgba(204,255,0,.08);border-color:rgba(204,255,0,.25);color:#fff">Cricket Scorer<span class="screen-sub">Runs · Wickets · Extras</span></div>
+          <div class="screen-chip" style="background:rgba(204,255,0,.08);border-color:rgba(204,255,0,.25);color:#fff">Badminton Scorer<span class="screen-sub">Rally · Set · Server</span></div>
+          <div class="screen-chip" style="background:rgba(204,255,0,.08);border-color:rgba(204,255,0,.25);color:#fff">Pickleball Scorer<span class="screen-sub">Points · Serve · Games</span></div>
+          <div class="screen-chip" style="background:rgba(204,255,0,.08);border-color:rgba(204,255,0,.25);color:#fff">Undo / Edit Play<span class="screen-sub">Correct last entry</span></div>
+        </div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-header" style="background:rgba(0,229,255,.08);color:var(--cyan)">🏆 Tournaments Tab <span class="role-tag" style="background:rgba(255,255,255,.1);color:#fff">ALL ROLES</span></div>
+        <div class="screens-row">
+          <div class="screen-chip" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.15);color:#fff">Tournament List<span class="screen-sub">Browse · Filter · Search</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.15);color:#fff">Tournament Detail<span class="screen-sub">Info · Teams · Schedule</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.15);color:#fff">Bracket View<span class="screen-sub">Classic Tree · Zoomable</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.15);color:#fff">Points Table<span class="screen-sub">League standings</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.15);color:#fff">Create Tournament<span class="screen-sub">ORG only</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.15);color:#fff">Manage Grounds<span class="screen-sub">ORG · Assign scorers</span></div>
+          <div class="screen-chip" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.15);color:#fff">QR Join<span class="screen-sub">Scan QR to join tourney</span></div>
+        </div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-header" style="background:rgba(255,255,255,.05);color:#fff">👤 Profile Tab <span class="role-tag" style="background:rgba(255,255,255,.1);color:#fff">ALL ROLES</span></div>
+        <div class="screens-row">
+          <div class="screen-chip" style="background:rgba(255,255,255,.04);border-color:var(--border);color:#fff">My Profile<span class="screen-sub">Stats · History · Trophies</span></div>
+          <div class="screen-chip" style="background:rgba(255,255,255,.04);border-color:var(--border);color:#fff">My Teams<span class="screen-sub">Manage team · Branding</span></div>
+          <div class="screen-chip" style="background:rgba(255,255,255,.04);border-color:var(--border);color:#fff">Team Branding<span class="screen-sub">Logo · Banner · Colors</span></div>
+          <div class="screen-chip" style="background:rgba(255,255,255,.04);border-color:var(--border);color:#fff">Match History<span class="screen-sub">All past matches</span></div>
+          <div class="screen-chip" style="background:rgba(255,255,255,.04);border-color:var(--border);color:#fff">Career Stats<span class="screen-sub">Per sport analytics</span></div>
+          <div class="screen-chip" style="background:rgba(255,255,255,.04);border-color:var(--border);color:#fff">Leaderboard<span class="screen-sub">Global rankings</span></div>
+          <div class="screen-chip" style="background:rgba(255,255,255,.04);border-color:var(--border);color:#fff">Settings<span class="screen-sub">Dark/Light · Notifs · Account</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

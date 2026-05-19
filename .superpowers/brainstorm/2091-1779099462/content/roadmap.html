@@ -1,0 +1,260 @@
+<style>
+:root{--bg:#0A0E1A;--cyan:#00E5FF;--lime:#CCFF00;--pink:#FF4D6D;--card:#111827;--border:rgba(255,255,255,0.08);--muted:#6B7280}
+.roadmap{display:flex;flex-direction:column;gap:12px}
+.phase{border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.phase-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.phase-num{font-size:11px;font-weight:900;letter-spacing:1px}
+.phase-title{font-size:13px;font-weight:700}
+.phase-duration{font-size:9px;padding:3px 10px;border-radius:10px;font-weight:600}
+.phase-body{padding:10px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.deliverable{background:rgba(255,255,255,.03);border-radius:7px;padding:8px 10px;border:1px solid var(--border)}
+.del-label{font-size:8px;font-weight:700;letter-spacing:.5px;margin-bottom:5px}
+.task{font-size:8px;color:var(--muted);padding:2px 0;display:flex;align-items:flex-start;gap:4px;border-bottom:1px solid rgba(255,255,255,.03)}
+.task:last-child{border-bottom:none}
+.dot{width:4px;height:4px;border-radius:50%;margin-top:3px;flex-shrink:0}
+/* Stack */
+.stack-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.stack-card{background:var(--card);border-radius:8px;padding:10px;border:1px solid var(--border);text-align:center}
+.stack-icon{font-size:20px;margin-bottom:4px}
+.stack-name{font-size:9px;font-weight:700;color:#fff}
+.stack-role{font-size:7px;color:var(--muted);margin-top:2px}
+.stack-ver{font-size:7px;font-weight:600;margin-top:3px;padding:1px 6px;border-radius:10px;display:inline-block}
+.section-label{font-size:9px;font-weight:700;letter-spacing:2px;margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+</style>
+
+<h2>Section 4 — Build Roadmap & Tech Stack</h2>
+<p class="subtitle">4 phases · ~16 weeks · monorepo-first build order</p>
+
+<div class="roadmap">
+
+  <!-- Phase 1 -->
+  <div class="phase">
+    <div class="phase-header" style="background:rgba(0,229,255,.08)">
+      <div>
+        <div class="phase-num" style="color:var(--cyan)">PHASE 1</div>
+        <div class="phase-title" style="color:#fff">Foundation — Auth, Backend Core, Marketing Site</div>
+      </div>
+      <div class="phase-duration" style="background:rgba(0,229,255,.15);color:var(--cyan)">Weeks 1–4</div>
+    </div>
+    <div class="phase-body">
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--cyan)">⚙️ BACKEND (NestJS)</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Monorepo setup — Turborepo + pnpm</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>PostgreSQL schema + TypeORM migrations</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Firebase OTP → JWT auth flow</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>RBAC guard (5 roles)</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Username check + auto-suggest</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Redis setup + Socket.IO gateway</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>User & Profile CRUD APIs</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Cloudinary image upload</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--lime)">🌐 MARKETING WEBSITE (Next.js)</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>G3 Sports brand setup + design system</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Home page — Video/particle hero</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Features page — animated sections</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Contact page + form</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>App download CTAs (iOS + Android)</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Mobile responsive + SEO</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Framer Motion animations</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Deploy to Vercel</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--pink)">✅ PHASE 1 OUTPUT</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Live marketing website at g3sports.com</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Full auth API working</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Database schema deployed</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Socket.IO gateway ready</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Shared TS types package done</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase">
+    <div class="phase-header" style="background:rgba(204,255,0,.06)">
+      <div>
+        <div class="phase-num" style="color:var(--lime)">PHASE 2</div>
+        <div class="phase-title" style="color:#fff">Admin Dashboard + Tournament & Ground Engine</div>
+      </div>
+      <div class="phase-duration" style="background:rgba(204,255,0,.12);color:var(--lime)">Weeks 5–8</div>
+    </div>
+    <div class="phase-body">
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--lime)">⚙️ BACKEND MODULES</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Tournament CRUD + bracket generation</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Grounds management API</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Match scheduling + conflict detection</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Teams + branding API</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Scorer assignment API</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Notifications (FCM) module</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--pink)">🖥️ ADMIN DASHBOARD (React)</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Admin login + protected routes</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Analytics dashboard — Recharts</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>User management (suspend/assign)</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Live match monitor panel</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Tournament monitor + bracket view</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Ground usage stats</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Sports rules configurator</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Export reports (CSV/PDF)</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--pink)">✅ PHASE 2 OUTPUT</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Admin dashboard live on Vercel</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Organizers can create tournaments</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Multi-ground scheduling works</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Bracket auto-generation done</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Push notifications flowing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase">
+    <div class="phase-header" style="background:rgba(255,77,109,.06)">
+      <div>
+        <div class="phase-num" style="color:var(--pink)">PHASE 3</div>
+        <div class="phase-title" style="color:#fff">Flutter Mobile App — Core + Live Scoring</div>
+      </div>
+      <div class="phase-duration" style="background:rgba(255,77,109,.15);color:var(--pink)">Weeks 9–13</div>
+    </div>
+    <div class="phase-body">
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--cyan)">📱 FLUTTER — CORE</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Project setup — Riverpod + GoRouter</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Onboarding + OTP + username flow</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Bottom tab shell + navigation</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Home feed — live + upcoming matches</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Tournament list + detail + bracket</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Team profile + branding upload</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Player profile + career stats</div>
+        <div class="task"><div class="dot" style="background:var(--cyan)"></div>Push notifications (FCM)</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--lime)">⚡ FLUTTER — LIVE SCORING</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Socket.IO client — match rooms</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Cricket scorer UI — full engine</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Badminton scorer — rally + sets</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Pickleball scorer — serve + games</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Live scoreboard — Team Card View</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Ball-by-ball timeline feed</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Undo last scoring action</div>
+        <div class="task"><div class="dot" style="background:var(--lime)"></div>Offline score sync queue</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--pink)">✅ PHASE 3 OUTPUT</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Flutter app on Android + iOS</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Live scoring works for all 3 sports</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Multi-ground simultaneous matches</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Real-time bracket updates</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Ready for beta testing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase">
+    <div class="phase-header" style="background:rgba(255,255,255,.04)">
+      <div>
+        <div class="phase-num" style="color:var(--muted)">PHASE 4</div>
+        <div class="phase-title" style="color:#fff">Polish, Analytics & Production Launch</div>
+      </div>
+      <div class="phase-duration" style="background:rgba(255,255,255,.08);color:#fff">Weeks 14–16</div>
+    </div>
+    <div class="phase-body">
+      <div class="deliverable">
+        <div class="del-label" style="color:#9CA3AF">📊 ANALYTICS & STATS</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Player career stats — all sports</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Team performance analytics</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Leaderboard + global rankings</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Tournament analytics export</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Admin usage reports</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:#9CA3AF">✨ POLISH & PERF</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Dark / Light mode toggle</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>QR code tournament joining</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Public TV scoreboard page</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>App Store + Play Store submission</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Rate limiting + security audit</div>
+        <div class="task"><div class="dot" style="background:#9CA3AF"></div>Load testing — simultaneous matches</div>
+      </div>
+      <div class="deliverable">
+        <div class="del-label" style="color:var(--pink)">🚀 LAUNCH OUTPUT</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>G3 Sports live on App Store</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>G3 Sports live on Play Store</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Marketing site driving downloads</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Admin monitoring all tournaments</div>
+        <div class="task"><div class="dot" style="background:var(--pink)"></div>Full production deployment</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tech Stack -->
+<div class="section-label" style="color:var(--cyan)">⚡ COMPLETE TECH STACK</div>
+<div class="stack-grid">
+  <div class="stack-card">
+    <div class="stack-icon">🐦</div>
+    <div class="stack-name">Flutter 3</div>
+    <div class="stack-role">Mobile App</div>
+    <div class="stack-ver" style="background:rgba(0,229,255,.15);color:var(--cyan)">Riverpod + GoRouter</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">⚛️</div>
+    <div class="stack-name">Next.js 14</div>
+    <div class="stack-role">Marketing Site</div>
+    <div class="stack-ver" style="background:rgba(204,255,0,.12);color:var(--lime)">Framer Motion + GSAP</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">🎛️</div>
+    <div class="stack-name">React + Vite</div>
+    <div class="stack-role">Admin Dashboard</div>
+    <div class="stack-ver" style="background:rgba(255,77,109,.12);color:var(--pink)">Recharts + TanStack</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">🏗️</div>
+    <div class="stack-name">NestJS</div>
+    <div class="stack-role">Backend API</div>
+    <div class="stack-ver" style="background:rgba(255,183,0,.12);color:#FFB700">TypeORM + Socket.IO</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">🐘</div>
+    <div class="stack-name">PostgreSQL</div>
+    <div class="stack-role">Primary Database</div>
+    <div class="stack-ver" style="background:rgba(255,255,255,.08);color:#9CA3AF">+ Redis cache</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">🔥</div>
+    <div class="stack-name">Firebase</div>
+    <div class="stack-role">OTP + FCM Push</div>
+    <div class="stack-ver" style="background:rgba(255,183,0,.12);color:#FFB700">Auth + Messaging</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">🖼️</div>
+    <div class="stack-name">Cloudinary</div>
+    <div class="stack-role">Media Storage</div>
+    <div class="stack-ver" style="background:rgba(255,255,255,.08);color:#9CA3AF">Logos + Banners</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">🚀</div>
+    <div class="stack-name">Vercel</div>
+    <div class="stack-role">Web Hosting</div>
+    <div class="stack-ver" style="background:rgba(255,255,255,.08);color:#9CA3AF">Web + Admin</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">☁️</div>
+    <div class="stack-name">Railway / AWS</div>
+    <div class="stack-role">API Hosting</div>
+    <div class="stack-ver" style="background:rgba(255,255,255,.08);color:#9CA3AF">NestJS + Redis</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-icon">📦</div>
+    <div class="stack-name">Turborepo</div>
+    <div class="stack-role">Monorepo</div>
+    <div class="stack-ver" style="background:rgba(255,255,255,.08);color:#9CA3AF">+ pnpm workspaces</div>
+  </div>
+</div>

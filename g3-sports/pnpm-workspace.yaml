@@ -1,0 +1,7 @@
+packages:
+  - "apps/*" # Node.js apps only (backend, web, admin). Flutter app at apps/mobile is managed separately via Flutter CLI.
+  - "packages/*" # Shared TypeScript packages (types, config, ui)
+allowBuilds:
+  '@nestjs/core': true
+  bcrypt: true
+  protobufjs: true

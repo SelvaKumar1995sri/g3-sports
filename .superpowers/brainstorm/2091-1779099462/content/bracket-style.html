@@ -1,0 +1,211 @@
+<style>
+:root{--bg:#0A0E1A;--cyan:#00E5FF;--lime:#CCFF00;--pink:#FF4D6D;--card:#111827;--border:rgba(255,255,255,0.08)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:24px}
+.opt{border-radius:14px;overflow:hidden;cursor:pointer;border:2px solid var(--border);transition:all .2s;background:var(--card)}
+.opt:hover{border-color:var(--cyan);transform:translateY(-3px)}
+.opt.selected{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,.25)}
+.preview{background:var(--bg);padding:14px;min-height:200px}
+.info{padding:12px 14px}
+.info h3{margin:0 0 5px;font-size:14px;color:#fff}
+.info p{margin:0;font-size:11px;color:#6B7280;line-height:1.5}
+.tag{display:inline-block;font-size:9px;padding:2px 7px;border-radius:10px;margin:5px 3px 0 0;font-weight:600}
+
+/* ── Bracket A: Classic Tree ── */
+.bracket-tree{display:flex;align-items:center;gap:0;font-size:0}
+.round{display:flex;flex-direction:column;justify-content:space-around}
+.match-pair{display:flex;flex-direction:column;gap:2px;margin:4px 0;position:relative}
+.match-pair::after{content:'';position:absolute;right:-10px;top:50%;width:10px;height:1px;background:rgba(0,229,255,.3)}
+.team-slot{background:rgba(255,255,255,.05);border-radius:3px;padding:3px 6px;display:flex;align-items:center;justify-content:space-between;min-width:52px;border:1px solid transparent}
+.team-slot.winner{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.3)}
+.team-slot.eliminated{opacity:.3}
+.ts-name{font-size:6px;color:#fff;font-weight:600}
+.ts-score{font-size:7px;font-weight:900;color:var(--cyan)}
+.ts-score.lose{color:rgba(255,255,255,.3)}
+.connector{display:flex;flex-direction:column;justify-content:center;margin:0 2px}
+.conn-line{width:1px;background:rgba(0,229,255,.2)}
+.round-label{font-size:6px;color:rgba(0,229,255,.5);letter-spacing:1px;text-align:center;margin-bottom:4px;font-weight:700}
+.trophy{font-size:14px;text-align:center;margin-top:4px}
+
+/* ── Bracket B: Card Bracket ── */
+.card-bracket{display:flex;gap:8px;align-items:center}
+.cb-round{display:flex;flex-direction:column;gap:6px}
+.cb-match{background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden;border:1px solid var(--border);min-width:70px}
+.cb-header{background:rgba(0,229,255,.08);padding:2px 6px;font-size:5px;color:var(--cyan);letter-spacing:1px;font-weight:700}
+.cb-team{padding:4px 6px;display:flex;align-items:center;gap:4px}
+.cb-team+.cb-team{border-top:1px solid var(--border)}
+.cb-logo{width:10px;height:10px;border-radius:2px;font-size:5px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;flex-shrink:0}
+.cb-name{font-size:6px;color:#fff;flex:1}
+.cb-pts{font-size:8px;font-weight:900;color:var(--lime)}
+.cb-pts.win{color:var(--cyan)}
+.cb-connector{width:10px;display:flex;flex-direction:column;justify-content:center;gap:0;align-self:stretch}
+.cc-top{flex:1;border-right:1px solid rgba(0,229,255,.25);border-bottom:1px solid rgba(0,229,255,.25);border-radius:0 0 4px 0}
+.cc-bot{flex:1;border-right:1px solid rgba(0,229,255,.25);border-top:1px solid rgba(0,229,255,.25);border-radius:0 4px 0 0}
+.final-card{background:linear-gradient(135deg,rgba(0,229,255,.1),rgba(204,255,0,.05));border-radius:6px;border:1px solid rgba(0,229,255,.3);min-width:70px}
+
+/* ── Bracket C: Timeline/Flow ── */
+.flow-bracket{display:flex;flex-direction:column;gap:4px}
+.flow-round-label{font-size:6px;color:var(--cyan);letter-spacing:2px;font-weight:700;padding:0 0 2px 0;border-bottom:1px solid rgba(0,229,255,.1)}
+.flow-matches{display:flex;gap:4px;flex-wrap:wrap}
+.flow-match{background:rgba(255,255,255,.04);border-radius:5px;padding:4px 6px;border-left:2px solid var(--border);min-width:60px}
+.flow-match.live{border-left-color:var(--pink)}
+.flow-match.done{border-left-color:var(--cyan);opacity:.7}
+.flow-match.upcoming{border-left-color:rgba(255,255,255,.1)}
+.fm-teams{font-size:6px;color:#fff;font-weight:600}
+.fm-score{font-size:8px;font-weight:900;color:var(--cyan)}
+.fm-badge{font-size:5px;padding:1px 4px;border-radius:2px;margin-bottom:2px;display:inline-block;font-weight:700}
+.fm-badge.live{background:var(--pink);color:#fff}
+.fm-badge.done{background:rgba(0,229,255,.2);color:var(--cyan)}
+.fm-badge.up{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+.flow-arrow{font-size:10px;color:rgba(0,229,255,.3);text-align:center}
+</style>
+
+<h2>Tournament Bracket Style</h2>
+<p class="subtitle">How should the tournament flow chart look for organizers, players and spectators?</p>
+
+<div class="grid">
+
+  <!-- A: Classic Tree Bracket -->
+  <div class="opt" data-choice="a" onclick="toggleSelect(this)">
+    <div class="preview">
+      <div style="margin-bottom:6px;font-size:7px;color:rgba(255,255,255,.4);letter-spacing:1px;text-align:center">G3 SPORTS KNOCKOUT TOURNAMENT</div>
+      <div class="bracket-tree">
+        <!-- QF -->
+        <div class="round">
+          <div class="round-label">QF</div>
+          <div class="match-pair">
+            <div class="team-slot winner"><span class="ts-name">Team A</span><span class="ts-score">187</span></div>
+            <div class="team-slot eliminated"><span class="ts-name">Team B</span><span class="ts-score lose">142</span></div>
+          </div>
+          <div class="match-pair">
+            <div class="team-slot winner"><span class="ts-name">Team C</span><span class="ts-score">201</span></div>
+            <div class="team-slot eliminated"><span class="ts-name">Team D</span><span class="ts-score lose">178</span></div>
+          </div>
+          <div class="match-pair">
+            <div class="team-slot winner"><span class="ts-name">Team E</span><span class="ts-score">156</span></div>
+            <div class="team-slot eliminated"><span class="ts-name">Team F</span><span class="ts-score lose">143</span></div>
+          </div>
+          <div class="match-pair">
+            <div class="team-slot winner"><span class="ts-name">Team G</span><span class="ts-score">189</span></div>
+            <div class="team-slot eliminated"><span class="ts-name">Team H</span><span class="ts-score lose">167</span></div>
+          </div>
+        </div>
+        <div style="width:10px"></div>
+        <!-- SF -->
+        <div class="round" style="margin-top:20px">
+          <div class="round-label">SF</div>
+          <div class="match-pair">
+            <div class="team-slot winner"><span class="ts-name">Team A</span><span class="ts-score">167</span></div>
+            <div class="team-slot eliminated"><span class="ts-name">Team C</span><span class="ts-score lose">145</span></div>
+          </div>
+          <div class="match-pair" style="margin-top:16px">
+            <div class="team-slot"><span class="ts-name">Team E</span><span class="ts-score" style="color:var(--lime)">LIVE</span></div>
+            <div class="team-slot"><span class="ts-name">Team G</span><span class="ts-score" style="color:var(--lime)">●</span></div>
+          </div>
+        </div>
+        <div style="width:10px"></div>
+        <!-- Final -->
+        <div class="round" style="margin-top:48px">
+          <div class="round-label" style="color:var(--lime)">FINAL</div>
+          <div class="match-pair">
+            <div class="team-slot winner" style="background:rgba(204,255,0,.1);border-color:rgba(204,255,0,.3)"><span class="ts-name">Team A</span><span class="ts-score" style="color:var(--lime)">?</span></div>
+            <div class="team-slot"><span class="ts-name">TBD</span><span class="ts-score" style="color:rgba(255,255,255,.2)">-</span></div>
+          </div>
+          <div class="trophy">🏆</div>
+        </div>
+      </div>
+    </div>
+    <div class="info">
+      <h3>A — Classic Tree Bracket</h3>
+      <p>Traditional left-to-right elimination tree. QF → SF → Final. Winners highlighted, eliminated teams faded. Universal and instantly understood.</p>
+      <span class="tag" style="background:rgba(0,229,255,.15);color:var(--cyan)">UNIVERSAL</span>
+      <span class="tag" style="background:rgba(255,255,255,.1);color:#fff">ZOOMABLE</span>
+    </div>
+  </div>
+
+  <!-- B: Card Bracket -->
+  <div class="opt" data-choice="b" onclick="toggleSelect(this)">
+    <div class="preview">
+      <div style="margin-bottom:8px;font-size:7px;color:rgba(255,255,255,.4);letter-spacing:1px;text-align:center">G3 SPORTS · KNOCKOUT DRAW</div>
+      <div class="card-bracket">
+        <!-- QF cards -->
+        <div class="cb-round">
+          <div style="font-size:6px;color:var(--cyan);letter-spacing:1px;margin-bottom:3px;font-weight:700">QUARTER FINALS</div>
+          <div class="cb-match">
+            <div class="cb-header">MATCH 1 · GND A · DONE</div>
+            <div class="cb-team"><div class="cb-logo" style="background:var(--cyan)">A</div><div class="cb-name">Team Alpha</div><div class="cb-pts win">187</div></div>
+            <div class="cb-team" style="opacity:.4"><div class="cb-logo" style="background:var(--pink)">B</div><div class="cb-name">Team Beta</div><div class="cb-pts">142</div></div>
+          </div>
+          <div class="cb-match">
+            <div class="cb-header" style="background:rgba(255,77,109,.1);color:var(--pink)">MATCH 2 · GND B · LIVE</div>
+            <div class="cb-team"><div class="cb-logo" style="background:var(--lime)">C</div><div class="cb-name">Team Cobra</div><div class="cb-pts" style="color:var(--pink)">●98</div></div>
+            <div class="cb-team"><div class="cb-logo" style="background:#8B5CF6">D</div><div class="cb-name">Team Delta</div><div class="cb-pts" style="color:var(--pink)">●87</div></div>
+          </div>
+        </div>
+        <div class="cb-connector"><div class="cc-top"></div><div class="cc-bot"></div></div>
+        <!-- SF -->
+        <div class="cb-round" style="margin-top:20px">
+          <div style="font-size:6px;color:var(--lime);letter-spacing:1px;margin-bottom:3px;font-weight:700">SEMI FINAL</div>
+          <div class="cb-match">
+            <div class="cb-header" style="background:rgba(204,255,0,.08);color:var(--lime)">MATCH 5 · UPCOMING</div>
+            <div class="cb-team"><div class="cb-logo" style="background:var(--cyan)">A</div><div class="cb-name">Team Alpha</div><div class="cb-pts" style="color:rgba(255,255,255,.3)">-</div></div>
+            <div class="cb-team"><div class="cb-logo" style="background:rgba(255,255,255,.2)">?</div><div class="cb-name">Winner M2</div><div class="cb-pts" style="color:rgba(255,255,255,.3)">-</div></div>
+          </div>
+        </div>
+        <div class="cb-connector" style="height:50px"><div class="cc-top"></div></div>
+        <!-- Final -->
+        <div class="cb-round" style="margin-top:40px">
+          <div style="font-size:6px;color:var(--lime);letter-spacing:1px;margin-bottom:3px;font-weight:700">🏆 FINAL</div>
+          <div class="final-card">
+            <div class="cb-header" style="background:rgba(204,255,0,.1);color:var(--lime)">GRAND FINAL</div>
+            <div class="cb-team"><div class="cb-logo" style="background:rgba(255,255,255,.1)">?</div><div class="cb-name">TBD</div><div class="cb-pts" style="color:rgba(255,255,255,.2)">-</div></div>
+            <div class="cb-team"><div class="cb-logo" style="background:rgba(255,255,255,.1)">?</div><div class="cb-name">TBD</div><div class="cb-pts" style="color:rgba(255,255,255,.2)">-</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="info">
+      <h3>B — Rich Match Cards ★</h3>
+      <p>Each match is a full card showing ground, status (Live/Done/Upcoming), team logos and scores. Connects with flowing lines. Most information-dense.</p>
+      <span class="tag" style="background:rgba(0,229,255,.15);color:var(--cyan)">INFO RICH</span>
+      <span class="tag" style="background:rgba(204,255,0,.1);color:var(--lime)">TEAM LOGOS</span>
+    </div>
+  </div>
+
+  <!-- C: Timeline Flow -->
+  <div class="opt" data-choice="c" onclick="toggleSelect(this)">
+    <div class="preview">
+      <div style="margin-bottom:8px;font-size:7px;color:rgba(255,255,255,.4);letter-spacing:1px;text-align:center">G3 SPORTS · TOURNAMENT PROGRESS</div>
+      <div class="flow-bracket">
+        <div class="flow-round-label">QUARTER FINALS (4 MATCHES)</div>
+        <div class="flow-matches">
+          <div class="flow-match done"><div class="fm-badge done">DONE</div><div class="fm-teams">Alpha vs Beta</div><div class="fm-score">187–142</div></div>
+          <div class="flow-match live"><div class="fm-badge live">● LIVE</div><div class="fm-teams">Cobra vs Delta</div><div class="fm-score">98–87</div></div>
+          <div class="flow-match upcoming"><div class="fm-badge up">SOON</div><div class="fm-teams">Echo vs Foxtrot</div><div class="fm-score" style="color:rgba(255,255,255,.2)">—</div></div>
+          <div class="flow-match upcoming"><div class="fm-badge up">SOON</div><div class="fm-teams">Golf vs Hotel</div><div class="fm-score" style="color:rgba(255,255,255,.2)">—</div></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-round-label" style="color:var(--lime)">SEMI FINALS (2 MATCHES)</div>
+        <div class="flow-matches">
+          <div class="flow-match upcoming" style="border-left-color:var(--lime)"><div class="fm-badge up">PENDING</div><div class="fm-teams">W1 vs W2</div><div class="fm-score" style="color:rgba(255,255,255,.2)">—</div></div>
+          <div class="flow-match upcoming" style="border-left-color:var(--lime)"><div class="fm-badge up">PENDING</div><div class="fm-teams">W3 vs W4</div><div class="fm-score" style="color:rgba(255,255,255,.2)">—</div></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-round-label" style="color:var(--lime);border-color:rgba(204,255,0,.2)">🏆 GRAND FINAL</div>
+        <div class="flow-matches">
+          <div class="flow-match upcoming" style="border-left-color:rgba(204,255,0,.3);background:rgba(204,255,0,.04)"><div class="fm-badge up">PENDING</div><div class="fm-teams">Champion vs Champion</div><div class="fm-score" style="color:rgba(255,255,255,.2)">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="info">
+      <h3>C — Vertical Timeline Flow</h3>
+      <p>Round-by-round vertical flow. Each match shown as a compact chip. Great for mobile — scrolls naturally. Shows all match statuses at a glance.</p>
+      <span class="tag" style="background:rgba(255,77,109,.15);color:var(--pink)">MOBILE FIRST</span>
+      <span class="tag" style="background:rgba(255,255,255,.1);color:#fff">SCROLL FRIENDLY</span>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:14px;background:rgba(0,229,255,.06);border-radius:10px;border-left:3px solid var(--cyan)">
+  <p style="margin:0;font-size:12px;color:#9CA3AF">★ <strong style="color:#fff">Recommendation:</strong> Option B (Rich Match Cards) — shows ground info, live status, and team logos in each match card. Automatically updates in real-time as scores come in. Most professional look for organizers.</p>
+</div>

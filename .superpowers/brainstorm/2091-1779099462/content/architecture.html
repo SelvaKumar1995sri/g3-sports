@@ -1,0 +1,113 @@
+<style>
+:root{--bg:#0A0E1A;--cyan:#00E5FF;--lime:#CCFF00;--pink:#FF4D6D;--card:#111827;--border:rgba(255,255,255,0.08);--text:#fff;--muted:#6B7280}
+*{box-sizing:border-box}
+.arch{display:flex;flex-direction:column;gap:16px}
+.section-label{font-size:9px;letter-spacing:2px;font-weight:700;text-transform:uppercase;margin-bottom:6px}
+/* Layers */
+.layer{border-radius:10px;padding:10px 14px;border:1px solid var(--border)}
+.layer-title{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.layer-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.boxes{display:flex;gap:8px;flex-wrap:wrap}
+.box{border-radius:7px;padding:7px 10px;font-size:10px;font-weight:600;display:flex;flex-direction:column;gap:2px;flex:1;min-width:80px;text-align:center}
+.box-sub{font-size:8px;font-weight:400;opacity:.6}
+/* Arrows */
+.arrow-row{display:flex;align-items:center;justify-content:center;gap:4px;padding:2px 0}
+.arrow-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.3),transparent)}
+.arrow-label{font-size:8px;color:var(--cyan);background:rgba(0,229,255,.08);padding:2px 8px;border-radius:10px;white-space:nowrap}
+/* Infra row */
+.infra-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.infra-box{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;padding:6px 8px;text-align:center}
+.infra-icon{font-size:14px;margin-bottom:3px}
+.infra-name{font-size:8px;color:#fff;font-weight:600}
+.infra-tech{font-size:7px;color:var(--muted)}
+/* Realtime highlight */
+.rt-badge{background:rgba(255,77,109,.15);color:var(--pink);font-size:8px;padding:2px 7px;border-radius:10px;font-weight:600}
+/* DB schema preview */
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.db-table{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;padding:5px 7px}
+.db-table-name{font-size:8px;color:var(--cyan);font-weight:700;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
+.db-field{font-size:6px;color:var(--muted);padding:1px 0}
+.db-field.pk{color:var(--lime)}
+.db-field.fk{color:rgba(0,229,255,.6)}
+</style>
+
+<h2>Section 1 — System Architecture</h2>
+<p class="subtitle">G3 Sports monorepo: 4 platforms, 1 shared backend, real-time everywhere</p>
+
+<div class="arch">
+
+  <!-- Client layer -->
+  <div class="layer" style="background:rgba(0,229,255,.04);border-color:rgba(0,229,255,.2)">
+    <div class="layer-title"><div class="layer-dot" style="background:var(--cyan)"></div><span style="color:var(--cyan)">CLIENT LAYER</span><span class="rt-badge">Real-time via Socket.IO</span></div>
+    <div class="boxes">
+      <div class="box" style="background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2)">
+        📱 <span style="color:var(--cyan)">Flutter App</span>
+        <span class="box-sub">Android + iOS<br>Riverpod state</span>
+      </div>
+      <div class="box" style="background:rgba(204,255,0,.06);border:1px solid rgba(204,255,0,.15)">
+        🌐 <span style="color:var(--lime)">Marketing Site</span>
+        <span class="box-sub">Next.js 14<br>Framer Motion</span>
+      </div>
+      <div class="box" style="background:rgba(255,77,109,.06);border:1px solid rgba(255,77,109,.15)">
+        ⚙️ <span style="color:var(--pink)">Admin Dashboard</span>
+        <span class="box-sub">React + Vite<br>Recharts analytics</span>
+      </div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">
+        📺 <span style="color:#fff">Public Scoreboard</span>
+        <span class="box-sub">Next.js page<br>TV/projector view</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">REST API + WebSocket</div>
+    <div class="arrow-line"></div>
+  </div>
+
+  <!-- API Gateway -->
+  <div class="layer" style="background:rgba(255,77,109,.04);border-color:rgba(255,77,109,.2)">
+    <div class="layer-title"><div class="layer-dot" style="background:var(--pink)"></div><span style="color:var(--pink)">API LAYER — NestJS</span></div>
+    <div class="boxes">
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">🔐 Auth Module<span class="box-sub">OTP · JWT · RBAC</span></div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">🏆 Tournament Module<span class="box-sub">Brackets · Rounds · Draws</span></div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">🏟️ Ground Module<span class="box-sub">Multi-ground · Scheduling</span></div>
+      <div class="box" style="background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2)">⚡ Score Engine<span class="box-sub">Cricket·Badminton·Pickleball</span></div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">📊 Analytics Module<span class="box-sub">Stats · Reports · Activity</span></div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">🔔 Notifications<span class="box-sub">FCM · Socket events</span></div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">Queries + Real-time subscriptions</div>
+    <div class="arrow-line"></div>
+  </div>
+
+  <!-- Data layer -->
+  <div class="layer" style="background:rgba(204,255,0,.03);border-color:rgba(204,255,0,.15)">
+    <div class="layer-title"><div class="layer-dot" style="background:var(--lime)"></div><span style="color:var(--lime)">DATA LAYER</span></div>
+    <div class="boxes">
+      <div class="box" style="background:rgba(204,255,0,.06);border:1px solid rgba(204,255,0,.15)">🐘 PostgreSQL<span class="box-sub">Primary database<br>Users·Matches·Scores</span></div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">⚡ Redis<span class="box-sub">Live score cache<br>Socket rooms · Sessions</span></div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">🗂️ S3 / Cloudinary<span class="box-sub">Team logos · Banners<br>Profile pictures</span></div>
+      <div class="box" style="background:rgba(255,255,255,.04);border:1px solid var(--border)">🔥 Firebase<span class="box-sub">OTP Auth<br>Push notifications (FCM)</span></div>
+    </div>
+  </div>
+
+  <!-- Infra -->
+  <div class="layer" style="background:rgba(255,255,255,.02);border-color:var(--border)">
+    <div class="layer-title"><div class="layer-dot" style="background:var(--muted)"></div><span style="color:var(--muted)">INFRASTRUCTURE</span></div>
+    <div class="infra-row">
+      <div class="infra-box"><div class="infra-icon">🚀</div><div class="infra-name">Vercel</div><div class="infra-tech">Web + Admin hosting</div></div>
+      <div class="infra-box"><div class="infra-icon">☁️</div><div class="infra-name">AWS / Railway</div><div class="infra-tech">NestJS backend</div></div>
+      <div class="infra-box"><div class="infra-icon">🔄</div><div class="infra-name">Turborepo</div><div class="infra-tech">Monorepo builds</div></div>
+      <div class="infra-box"><div class="infra-icon">📦</div><div class="infra-name">GitHub Actions</div><div class="infra-tech">CI/CD pipeline</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;padding:12px 14px;background:rgba(0,229,255,.06);border-radius:8px;border-left:3px solid var(--cyan)">
+  <p style="margin:0;font-size:12px;color:#9CA3AF"><strong style="color:#fff">Key insight:</strong> Redis handles all live score caching so the database isn't hammered during simultaneous multi-ground matches. Socket.IO rooms are created per match — scorers push to a room, all watchers receive instantly.</p>
+</div>
