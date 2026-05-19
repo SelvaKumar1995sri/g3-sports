@@ -53,13 +53,17 @@ export class TournamentsService {
     await this.tournamentRepo.remove(t);
   }
 
-  async registerTeam(tournamentId: string, teamId: string): Promise<TournamentTeam> {
+  async registerTeam(tournamentId: string, teamId: string, userId: string): Promise<TournamentTeam> {
     const tournament = await this.findOne(tournamentId);
     if (tournament.status !== TournamentStatus.DRAFT && tournament.status !== TournamentStatus.REGISTRATION) {
       throw new BadRequestException('Registration is closed');
     }
-    const team = await this.teamRepo.findOneBy({ id: teamId });
+    const team = await this.teamRepo.findOne({ where: { id: teamId }, relations: ['owner'] });
     if (!team) throw new NotFoundException('Team not found');
+    // Only tournament organizer or team owner can register
+    if (tournament.organizer.id !== userId && team.owner.id !== userId) {
+      throw new ForbiddenException('Only the tournament organizer or team owner can register a team');
+    }
     const existing = await this.ttRepo.findOne({ where: { tournament: { id: tournamentId }, team: { id: teamId } } });
     if (existing) throw new BadRequestException('Team already registered');
     const tt = this.ttRepo.create({ tournament: { id: tournamentId }, team: { id: teamId } });

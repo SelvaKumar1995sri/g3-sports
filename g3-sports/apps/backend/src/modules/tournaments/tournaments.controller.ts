@@ -39,8 +39,8 @@ export class TournamentsController {
 
   @Post(':id/register-team/:teamId')
   @UseGuards(JwtAuthGuard)
-  registerTeam(@Param('id') id: string, @Param('teamId') teamId: string) {
-    return this.svc.registerTeam(id, teamId);
+  registerTeam(@Param('id') id: string, @Param('teamId') teamId: string, @Request() req: { user: { id: string } }) {
+    return this.svc.registerTeam(id, teamId, req.user.id);
   }
 
   @Get(':id/standings')
