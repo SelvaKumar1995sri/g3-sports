@@ -12,5 +12,6 @@ import { AnalyticsService } from './analytics.service';
   imports: [TypeOrmModule.forFeature([Tournament, Match, User, Team, PlayerStat])],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],
+  exports: [AnalyticsService],
 })
 export class AnalyticsModule {}
