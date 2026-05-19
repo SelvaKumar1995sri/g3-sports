@@ -18,7 +18,8 @@
       "Bash(Write-Host \"BUILD_DONE\")",
       "Bash(echo \"BUILD_EXIT:$?\")",
       "Bash(pnpm approve-builds *)",
-      "PowerShell(cd \"D:\\\\Version_6.36\\\\selva\\\\G4_SportsForce\\\\g3-sports\\\\apps\\\\backend\"; pnpm build; Write-Host \"Exit: $LASTEXITCODE\")"
+      "PowerShell(cd \"D:\\\\Version_6.36\\\\selva\\\\G4_SportsForce\\\\g3-sports\\\\apps\\\\backend\"; pnpm build; Write-Host \"Exit: $LASTEXITCODE\")",
+      "Bash(git push *)"
     ]
   }
 }
