@@ -93,34 +93,31 @@ export class ScoreService {
 
     const saved = await this.cricketRepo.save(score);
 
-    if (match.socketRoom) {
-      const battingTeam = match.teamA.id === dto.battingTeamId ? match.teamA : match.teamB;
-      const bowlingTeam = match.teamA.id === dto.battingTeamId ? match.teamB : match.teamA;
-      const allInnings = await this.cricketRepo.find({ where: { match: { id: dto.matchId } } });
+    const battingTeam = match.teamA.id === dto.battingTeamId ? match.teamA : match.teamB;
+    const allInnings = await this.cricketRepo.find({ where: { match: { id: dto.matchId } } });
 
-      const teamAInnings = allInnings.filter(s => s.team?.id === match.teamA.id || s.team === (match.teamA as any));
-      const teamBInnings = allInnings.filter(s => s.team?.id === match.teamB.id || s.team === (match.teamB as any));
+    const teamAInnings = allInnings.filter(s => s.team?.id === match.teamA.id || s.team === (match.teamA as any));
+    const teamBInnings = allInnings.filter(s => s.team?.id === match.teamB.id || s.team === (match.teamB as any));
 
-      await this.gateway.broadcastScoreUpdate(match.socketRoom, {
+    await this.gateway.broadcastScoreUpdate(dto.matchId, {
+      match_id: dto.matchId,
+      sport: SportType.CRICKET,
+      team_a_score: { innings: teamAInnings } as Record<string, unknown>,
+      team_b_score: { innings: teamBInnings } as Record<string, unknown>,
+      status: match.status,
+      updated_at: new Date().toISOString(),
+    });
+
+    if (dto.isWicket && dto.wicketType) {
+      await this.gateway.broadcastWicket(dto.matchId, {
         match_id: dto.matchId,
         sport: SportType.CRICKET,
-        team_a_score: { innings: teamAInnings } as Record<string, unknown>,
-        team_b_score: { innings: teamBInnings } as Record<string, unknown>,
-        status: match.status,
-        updated_at: new Date().toISOString(),
+        player_id: battingTeam.id,
+        player_name: battingTeam.name ?? '',
+        wicket_type: dto.wicketType,
+        over: parseFloat(String(saved.overs)),
+        ball: Math.round(parseFloat(String(saved.overs)) * 6) % 6,
       });
-
-      if (dto.isWicket && dto.wicketType) {
-        await this.gateway.broadcastWicket(match.socketRoom, {
-          match_id: dto.matchId,
-          sport: SportType.CRICKET,
-          player_id: battingTeam.id,
-          player_name: battingTeam.name ?? '',
-          wicket_type: dto.wicketType,
-          over: parseFloat(String(saved.overs)),
-          ball: Math.round(parseFloat(String(saved.overs)) * 6) % 6,
-        });
-      }
     }
 
     return saved;
@@ -148,12 +145,12 @@ export class ScoreService {
 
     const saved = await this.cricketRepo.save(score);
     const match = await this.matchRepo.findOne({ where: { id: matchId }, relations: ['teamA', 'teamB'] });
-    if (match?.socketRoom) {
+    if (match) {
       const allInnings = await this.cricketRepo.find({ where: { match: { id: matchId } } });
       const teamAInnings = allInnings.filter(s => s.team?.id === match.teamA.id || s.team === (match.teamA as any));
       const teamBInnings = allInnings.filter(s => s.team?.id === match.teamB.id || s.team === (match.teamB as any));
 
-      await this.gateway.broadcastScoreUpdate(match.socketRoom, {
+      await this.gateway.broadcastScoreUpdate(matchId, {
         match_id: matchId,
         sport: SportType.CRICKET,
         team_a_score: { innings: teamAInnings } as Record<string, unknown>,
@@ -211,20 +208,18 @@ export class ScoreService {
 
     const saved = await this.badmintonRepo.save(set);
 
-    if (match.socketRoom) {
-      const allSets = await this.badmintonRepo.find({
-        where: { match: { id: dto.matchId } },
-        order: { setNumber: 'ASC' },
-      });
-      await this.gateway.broadcastScoreUpdate(match.socketRoom, {
-        match_id: dto.matchId,
-        sport: SportType.BADMINTON,
-        team_a_score: { sets: allSets.map(s => s.teamAPoints) } as Record<string, unknown>,
-        team_b_score: { sets: allSets.map(s => s.teamBPoints) } as Record<string, unknown>,
-        status: match.status,
-        updated_at: new Date().toISOString(),
-      });
-    }
+    const allSets = await this.badmintonRepo.find({
+      where: { match: { id: dto.matchId } },
+      order: { setNumber: 'ASC' },
+    });
+    await this.gateway.broadcastScoreUpdate(dto.matchId, {
+      match_id: dto.matchId,
+      sport: SportType.BADMINTON,
+      team_a_score: { sets: allSets.map(s => s.teamAPoints) } as Record<string, unknown>,
+      team_b_score: { sets: allSets.map(s => s.teamBPoints) } as Record<string, unknown>,
+      status: match.status,
+      updated_at: new Date().toISOString(),
+    });
 
     return saved;
   }
@@ -275,20 +270,18 @@ export class ScoreService {
 
     const saved = await this.pickleballRepo.save(game);
 
-    if (match.socketRoom) {
-      const allGames = await this.pickleballRepo.find({
-        where: { match: { id: dto.matchId } },
-        order: { gameNumber: 'ASC' },
-      });
-      await this.gateway.broadcastScoreUpdate(match.socketRoom, {
-        match_id: dto.matchId,
-        sport: SportType.PICKLEBALL,
-        team_a_score: { games: allGames.map(g => g.teamAPoints) } as Record<string, unknown>,
-        team_b_score: { games: allGames.map(g => g.teamBPoints) } as Record<string, unknown>,
-        status: match.status,
-        updated_at: new Date().toISOString(),
-      });
-    }
+    const allGames = await this.pickleballRepo.find({
+      where: { match: { id: dto.matchId } },
+      order: { gameNumber: 'ASC' },
+    });
+    await this.gateway.broadcastScoreUpdate(dto.matchId, {
+      match_id: dto.matchId,
+      sport: SportType.PICKLEBALL,
+      team_a_score: { games: allGames.map(g => g.teamAPoints) } as Record<string, unknown>,
+      team_b_score: { games: allGames.map(g => g.teamBPoints) } as Record<string, unknown>,
+      status: match.status,
+      updated_at: new Date().toISOString(),
+    });
 
     return saved;
   }
