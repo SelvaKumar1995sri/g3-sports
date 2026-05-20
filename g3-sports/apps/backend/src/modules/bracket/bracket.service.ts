@@ -30,8 +30,14 @@ export class BracketService {
     // Check registration deadline
     const tournament = await this.tournamentRepo.findOneBy({ id: tournamentId });
     if (!tournament) throw new NotFoundException('Tournament not found');
-    if (tournament.registrationDeadline && new Date() < new Date(tournament.registrationDeadline)) {
-      throw new BadRequestException('Registration deadline has not passed yet. Cannot generate fixtures before deadline.');
+    if (tournament.registrationDeadline) {
+      const deadlineEnd = new Date(tournament.registrationDeadline);
+      deadlineEnd.setUTCHours(23, 59, 59, 999); // treat as end of day UTC
+      if (new Date() <= deadlineEnd) {
+        throw new BadRequestException(
+          'Registration deadline has not passed yet. Cannot generate fixtures before deadline.',
+        );
+      }
     }
 
     const teams = await this.ttRepo.find({
