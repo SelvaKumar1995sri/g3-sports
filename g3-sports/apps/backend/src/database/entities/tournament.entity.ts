@@ -37,7 +37,7 @@ export class Tournament {
   @Column({ name: 'registration_deadline', type: 'date', nullable: true })
   registrationDeadline: Date | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'location', type: 'varchar', nullable: true })
   location: string | null;
 
   @Column({ name: 'rules_config', type: 'jsonb', default: {} })
