@@ -1,9 +1,12 @@
-import { Controller, Get, Put, Body, Param, Post, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Body, Param, Post, Delete, Patch, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../../database/entities/user.entity';
+import { UserRole } from '@g3/types';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -33,5 +36,37 @@ export class UsersController {
   @Delete('me/device-token')
   removeDeviceToken(@CurrentUser() user: User, @Body() body: { token: string }) {
     return this.users.removeDeviceToken(user.id, body.token);
+  }
+
+  // ─── Role Requests ────────────────────────────────────────────────────────────
+
+  @Post('role-requests')
+  requestOrganizerRole(
+    @CurrentUser() user: User,
+    @Body('reason') reason?: string,
+  ) {
+    return this.users.requestOrganizerRole(user.id, reason);
+  }
+
+  @Get('role-requests/mine')
+  getMyRoleRequest(@CurrentUser() user: User) {
+    return this.users.getMyRoleRequest(user.id);
+  }
+
+  @Get('role-requests')
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  listRoleRequests() {
+    return this.users.listRoleRequests();
+  }
+
+  @Patch('role-requests/:id')
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  reviewRoleRequest(
+    @Param('id') id: string,
+    @Body('action') action: 'approve' | 'deny',
+  ) {
+    return this.users.reviewRoleRequest(id, action);
   }
 }

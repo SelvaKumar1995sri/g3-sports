@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
 import { UserProfile } from '../../database/entities/user-profile.entity';
+import { RoleRequest, RoleRequestStatus } from '../../database/entities/role-request.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserRole } from '@g3/types';
 
 @Injectable()
 export class UsersService {
@@ -12,6 +14,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(UserProfile) private readonly profiles: Repository<UserProfile>,
+    @InjectRepository(RoleRequest) private readonly roleRequests: Repository<RoleRequest>,
   ) {}
 
   async findById(id: string): Promise<User> {
@@ -83,5 +86,63 @@ export class UsersService {
     profile.deviceTokens = profile.deviceTokens.filter((t) => t !== token);
     await this.profiles.save(profile);
     return { message: 'Device token removed' };
+  }
+
+  async requestOrganizerRole(userId: string, reason?: string): Promise<RoleRequest> {
+    const existing = await this.roleRequests.findOne({
+      where: { user: { id: userId }, status: RoleRequestStatus.PENDING },
+    });
+    if (existing) throw new BadRequestException('You already have a pending role upgrade request');
+
+    const user = await this.findById(userId);
+    if (user.role === UserRole.ORGANIZER || user.role === UserRole.SUPER_ADMIN) {
+      throw new BadRequestException('You already have organizer or higher access');
+    }
+
+    const request = this.roleRequests.create({
+      user: { id: userId } as User,
+      reason: reason ?? null,
+      status: RoleRequestStatus.PENDING,
+    });
+    return this.roleRequests.save(request);
+  }
+
+  async getMyRoleRequest(userId: string): Promise<RoleRequest | null> {
+    return this.roleRequests.findOne({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async listRoleRequests(): Promise<RoleRequest[]> {
+    return this.roleRequests.find({
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async reviewRoleRequest(
+    requestId: string,
+    action: 'approve' | 'deny',
+  ): Promise<RoleRequest> {
+    const req = await this.roleRequests.findOne({
+      where: { id: requestId },
+      relations: ['user'],
+    });
+    if (!req) throw new NotFoundException('Role request not found');
+    if (req.status !== RoleRequestStatus.PENDING) {
+      throw new BadRequestException('Request already reviewed');
+    }
+
+    req.status = action === 'approve' ? RoleRequestStatus.APPROVED : RoleRequestStatus.DENIED;
+    req.reviewedAt = new Date();
+    await this.roleRequests.save(req);
+
+    if (action === 'approve') {
+      req.user.role = UserRole.ORGANIZER;
+      await this.users.save(req.user);
+    }
+
+    return req;
   }
 }
