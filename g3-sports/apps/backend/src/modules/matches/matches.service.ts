@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Match } from '../../database/entities/match.entity';
 import { Ground } from '../../database/entities/ground.entity';
 import { User } from '../../database/entities/user.entity';
+import { Team } from '../../database/entities/team.entity';
+import { Tournament } from '../../database/entities/tournament.entity';
 import { MatchStatus } from '@g3/types';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { TossDto } from './dto/toss.dto';
@@ -106,7 +108,7 @@ export class MatchesService {
     }
     m.status = MatchStatus.COMPLETED;
     m.completedAt = new Date();
-    m.winner = { id: winnerTeamId } as any;
+    m.winner = { id: winnerTeamId } as Team;
     await this.matchRepo.save(m);
 
     // Auto-advance bracket
@@ -120,21 +122,28 @@ export class MatchesService {
       const nextRound = String(Number(bm.round) + 1);
       if (!next.match) {
         const nextMatch = this.matchRepo.create({
-          tournament: { id: bm.tournament.id } as any,
+          tournament: { id: bm.tournament.id } as Tournament,
           sport: m.sport,
           status: MatchStatus.SCHEDULED,
           round: nextRound,
           socketRoom: `match:${bm.tournament.id}:r${nextRound}:p${next.position}`,
           ...(isTeamA
-            ? { teamA: { id: winnerTeamId } as any }
-            : { teamB: { id: winnerTeamId } as any }),
+            ? { teamA: { id: winnerTeamId } as Team }
+            : { teamB: { id: winnerTeamId } as Team }),
         });
         const savedNext = await this.matchRepo.save(nextMatch);
         next.match = savedNext;
       } else {
-        if (isTeamA) next.match.teamA = { id: winnerTeamId } as any;
-        else next.match.teamB = { id: winnerTeamId } as any;
-        await this.matchRepo.save(next.match);
+        // Guard: don't overwrite an already-filled slot
+        if (isTeamA && next.match.teamA?.id) {
+          // slot already filled by the other feeder — no-op
+        } else if (!isTeamA && next.match.teamB?.id) {
+          // slot already filled — no-op
+        } else {
+          if (isTeamA) next.match.teamA = { id: winnerTeamId } as Team;
+          else next.match.teamB = { id: winnerTeamId } as Team;
+          await this.matchRepo.save(next.match);
+        }
       }
       await this.bracketMatchRepo.save(next);
     }

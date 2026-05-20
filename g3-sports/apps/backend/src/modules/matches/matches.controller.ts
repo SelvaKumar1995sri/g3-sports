@@ -3,6 +3,7 @@ import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { TossDto } from './dto/toss.dto';
 import { StartMatchDto } from './dto/start-match.dto';
+import { CompleteMatchDto } from './dto/complete-match.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MatchStatus } from '@g3/types';
@@ -60,9 +61,9 @@ export class MatchesController {
   @UseGuards(JwtAuthGuard)
   completeMatch(
     @Param('id') id: string,
-    @Body('winnerTeamId') winnerTeamId: string,
+    @Body() dto: CompleteMatchDto,
     @CurrentUser() user: User,
   ) {
-    return this.svc.completeMatch(id, user.id, winnerTeamId);
+    return this.svc.completeMatch(id, user.id, dto.winnerTeamId);
   }
 }
