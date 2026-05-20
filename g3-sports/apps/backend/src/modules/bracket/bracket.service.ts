@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { BracketMatch } from '../../database/entities/bracket-match.entity';
 import { Match } from '../../database/entities/match.entity';
 import { TournamentTeam } from '../../database/entities/tournament-team.entity';
+import { Tournament } from '../../database/entities/tournament.entity';
 import { MatchStatus, SportType } from '@g3/types';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class BracketService {
     @InjectRepository(BracketMatch) private bmRepo: Repository<BracketMatch>,
     @InjectRepository(Match) private matchRepo: Repository<Match>,
     @InjectRepository(TournamentTeam) private ttRepo: Repository<TournamentTeam>,
+    @InjectRepository(Tournament) private tournamentRepo: Repository<Tournament>,
   ) {}
 
   /** Returns next power-of-2 >= n */
@@ -24,6 +26,13 @@ export class BracketService {
   async generate(tournamentId: string, sport: SportType): Promise<BracketMatch[]> {
     const existing = await this.bmRepo.findOne({ where: { tournament: { id: tournamentId } } });
     if (existing) throw new BadRequestException('Bracket already generated for this tournament');
+
+    // Check registration deadline
+    const tournament = await this.tournamentRepo.findOneBy({ id: tournamentId });
+    if (!tournament) throw new NotFoundException('Tournament not found');
+    if (tournament.registrationDeadline && new Date() < new Date(tournament.registrationDeadline)) {
+      throw new BadRequestException('Registration deadline has not passed yet. Cannot generate fixtures before deadline.');
+    }
 
     const teams = await this.ttRepo.find({
       where: { tournament: { id: tournamentId } },
