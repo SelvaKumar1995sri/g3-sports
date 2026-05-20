@@ -189,21 +189,36 @@ export class ScoreService {
     if (!match) throw new NotFoundException('Match not found');
     if (match.status !== MatchStatus.LIVE) throw new BadRequestException('Match is not live');
 
+    // Read scoring config — default to BWF standard if not set
+    const pointsPerSet = match.scoringConfig?.pointsPerSet ?? 21;
+    const deuceRule = match.scoringConfig?.deuceRule ?? 'STANDARD';
+
     const set = await this.getOrCreateBadmintonSet(dto.matchId, dto.setNumber);
     if (set.isCompleted) throw new BadRequestException('Set already completed');
 
     if (dto.scoringTeam === 'A') set.teamAPoints += 1;
     else set.teamBPoints += 1;
 
-    // Win condition: 21 points with 2-point lead, cap at 30
     const a = set.teamAPoints;
     const b = set.teamBPoints;
-    if ((a >= 21 && a - b >= 2) || a >= 30) {
+    const maxPoints = pointsPerSet;
+
+    let winner: typeof match.teamA | null = null;
+
+    if (deuceRule === 'GOLDEN_POINT') {
+      // At maxPoints or beyond: first to lead wins (no 2-point margin needed)
+      if (a >= maxPoints && a > b) winner = match.teamA;
+      else if (b >= maxPoints && b > a) winner = match.teamB;
+    } else {
+      // STANDARD deuce: need 2-point lead after maxPoints, cap at maxPoints + 9 (e.g. 30 for 21-pt)
+      const cap = maxPoints + 9;
+      if ((a >= maxPoints && a - b >= 2) || a >= cap) winner = match.teamA;
+      else if ((b >= maxPoints && b - a >= 2) || b >= cap) winner = match.teamB;
+    }
+
+    if (winner) {
       set.isCompleted = true;
-      set.setWinner = match.teamA;
-    } else if ((b >= 21 && b - a >= 2) || b >= 30) {
-      set.isCompleted = true;
-      set.setWinner = match.teamB;
+      set.setWinner = winner;
     }
 
     const saved = await this.badmintonRepo.save(set);
