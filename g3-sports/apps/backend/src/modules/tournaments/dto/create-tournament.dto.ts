@@ -7,6 +7,8 @@ export class CreateTournamentDto {
   @IsEnum(TournamentFormat) format: TournamentFormat;
   @IsDateString() startDate: string;
   @IsDateString() endDate: string;
+  @IsOptional() @IsDateString() registrationDeadline?: string;
+  @IsOptional() @IsString() location?: string;
   @IsOptional() @IsString() bannerUrl?: string;
   @IsOptional() @IsObject() rulesConfig?: Record<string, unknown>;
 }

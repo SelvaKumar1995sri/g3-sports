@@ -21,6 +21,8 @@ export class TournamentsService {
       ...dto,
       startDate: new Date(dto.startDate),
       endDate: new Date(dto.endDate),
+      registrationDeadline: dto.registrationDeadline ? new Date(dto.registrationDeadline) : null,
+      location: dto.location ?? null,
       organizer: { id: organizerId },
       status: TournamentStatus.DRAFT,
     });
