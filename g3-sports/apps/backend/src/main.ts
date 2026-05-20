@@ -10,13 +10,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const reflector = app.get(Reflector);
 
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: false }));
 
-  const corsOrigin = process.env.CORS_ORIGIN ?? '*';
-  if (process.env.NODE_ENV === 'production' && corsOrigin === '*') {
-    console.warn('[WARN] CORS_ORIGIN is not set — defaulting to wildcard. Set CORS_ORIGIN in production!');
-  }
-  app.enableCors({ origin: corsOrigin });
+  const rawOrigin = process.env.CORS_ORIGIN;
+  const corsOrigin = rawOrigin
+    ? rawOrigin.split(',').map((s) => s.trim())
+    : true; // allow all origins when not set
+  app.enableCors({
+    origin: corsOrigin,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
