@@ -108,7 +108,9 @@ All registered users are **Players** by default. Scorer and Organizer are permis
 
 ### Organizer (approved by admin)
 - **My Tournaments** — list of tournaments I created
-- **Create Tournament** — name, sport (Badminton), format, dates, location
+- **Create Tournament** — name, sport (Badminton), format, dates, location, scoring config:
+  - Points per set: **11** or **21**
+  - Deuce rule: **Golden Point** (next point wins) or **Standard** (2-point lead)
 - **Manage Registrations** — approve/reject team registrations
 - **Schedule Matches** — assign teams to match slots, set time/ground
 - **Assign Scorer** — pick a registered player to score a specific match
@@ -173,13 +175,47 @@ New DB table: `role_request` — columns: `id`, `userId`, `reason`, `status` (PE
 
 ## Live Scoring — Badminton
 
-### Scoring Rules Enforced
-- Best of 3 sets, 21 points per set
-- At 20-20: play until 2-point lead (deuce)
-- Max 30 points per set (30-29 wins)
-- Third set played to 15 points
-- Service transfers on rally win (rally-point scoring)
-- Service side tracked and shown on scorer screen
+### Scoring Configuration (Organizer sets when creating tournament)
+
+Organizer picks **two settings** before the tournament starts. All matches in that tournament follow the same rules.
+
+**Setting 1 — Points per set:**
+| Option | Description |
+|---|---|
+| **11 points** | Shorter, faster games |
+| **21 points** | Standard BWF format |
+
+**Setting 2 — Deuce rule** (applies when tied at 10-10 or 20-20):
+| Option | Description |
+|---|---|
+| **Golden Point** | The very next point wins the set — sudden death, no extended play |
+| **Standard deuce** | First team to gain a 2-point lead wins the set |
+
+**Examples:**
+- `21 points + Standard deuce` → classic BWF (play to 21, deuce possible, max 30-29 with no golden point)
+- `21 points + Golden Point` → play to 21, if 20-20 the next single point decides the set
+- `11 points + Golden Point` → short format, if 10-10 the next single point decides
+- `11 points + Standard deuce` → play to 11, if 10-10 first to lead by 2 wins
+
+**Stored on the tournament record:**
+```json
+{
+  "scoringConfig": {
+    "pointsPerSet": 11,          // 11 or 21
+    "deuceRule": "GOLDEN_POINT"  // "GOLDEN_POINT" or "STANDARD"
+  }
+}
+```
+
+### Scoring Rules Enforced at Runtime
+- Best of 3 sets
+- Points per set: from tournament `scoringConfig.pointsPerSet`
+- At tie (10-10 or 20-20): apply `scoringConfig.deuceRule`
+  - `GOLDEN_POINT` → next point wins set immediately
+  - `STANDARD` → keep playing until one team leads by 2
+- Third set: same point target and deuce rule as sets 1 & 2
+- Service transfers on every rally win (rally-point scoring)
+- Service side auto-tracked and displayed on scorer screen
 
 ### Socket.IO Integration
 ```
@@ -202,6 +238,8 @@ All spectators receive update < 1 second
 ```
 
 Undo: `DELETE /api/score/badminton/:matchId/undo`
+
+> **Backend change required:** The `Tournament` entity and `CreateTournamentDto` must be extended to store `scoringConfig` (`pointsPerSet: number`, `deuceRule: 'GOLDEN_POINT' | 'STANDARD'`). The score service must read this config when evaluating set completion logic.
 
 ---
 
