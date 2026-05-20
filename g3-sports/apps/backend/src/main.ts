@@ -1,9 +1,9 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
+
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { RolesGuard } from './common/guards/roles.guard';
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -29,7 +29,6 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor(), new ClassSerializerInterceptor(app.get(Reflector)));
-  app.useGlobalGuards(new RolesGuard(reflector));
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
