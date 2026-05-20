@@ -11,3 +11,8 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# Flutter mobile - Firebase credentials
+apps/mobile/android/app/google-services.json
+apps/mobile/ios/Runner/GoogleService-Info.plist
+apps/mobile/lib/firebase_options.dart
