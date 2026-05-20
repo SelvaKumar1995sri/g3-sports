@@ -88,6 +88,16 @@ export class UsersService {
     return { message: 'Device token removed' };
   }
 
+  async findAll(): Promise<User[]> {
+    return this.users.find({ order: { createdAt: 'DESC' } });
+  }
+
+  async updateRole(userId: string, role: UserRole): Promise<User> {
+    const user = await this.findById(userId);
+    user.role = role;
+    return this.users.save(user);
+  }
+
   async requestOrganizerRole(userId: string, reason?: string): Promise<RoleRequest> {
     const existing = await this.roleRequests.findOne({
       where: { user: { id: userId }, status: RoleRequestStatus.PENDING },

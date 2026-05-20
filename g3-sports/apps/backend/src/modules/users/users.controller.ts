@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Param, Post, Delete, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Body, Param, Post, Delete, Patch, UseGuards, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -31,6 +31,22 @@ export class UsersController {
   @Delete('me/device-token')
   removeDeviceToken(@CurrentUser() user: User, @Body() body: { token: string }) {
     return this.users.removeDeviceToken(user.id, body.token);
+  }
+
+  // ─── Admin: list all users + update role (must be before :id wildcard) ────────
+
+  @Get()
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  listUsers() {
+    return this.users.findAll();
+  }
+
+  @Patch(':id/role')
+  @Roles(UserRole.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  updateUserRole(@Param('id') id: string, @Body('role') role: UserRole) {
+    return this.users.updateRole(id, role);
   }
 
   // ─── Role Requests (must be before :id wildcard) ──────────────────────────────
