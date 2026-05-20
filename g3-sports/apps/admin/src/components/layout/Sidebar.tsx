@@ -6,6 +6,7 @@ const links = [
   { to: '/admin/tournaments', label: '🏆 Tournaments' },
   { to: '/admin/users', label: '👥 Users' },
   { to: '/admin/live', label: '🔴 Live Matches' },
+  { to: '/admin/role-requests', label: '🔑 Role Requests' },
 ];
 
 export default function Sidebar() {
