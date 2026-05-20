@@ -23,11 +23,6 @@ export class UsersController {
     return this.users.updateProfile(user.id, dto);
   }
 
-  @Get(':id')
-  getUser(@Param('id') id: string) {
-    return this.users.findPublicProfile(id);
-  }
-
   @Post('me/device-token')
   addDeviceToken(@CurrentUser() user: User, @Body() body: { token: string }) {
     return this.users.addDeviceToken(user.id, body.token);
@@ -38,7 +33,7 @@ export class UsersController {
     return this.users.removeDeviceToken(user.id, body.token);
   }
 
-  // ─── Role Requests ────────────────────────────────────────────────────────────
+  // ─── Role Requests (must be before :id wildcard) ──────────────────────────────
 
   @Post('role-requests')
   requestOrganizerRole(
@@ -68,5 +63,12 @@ export class UsersController {
     @Body('action') action: 'approve' | 'deny',
   ) {
     return this.users.reviewRoleRequest(id, action);
+  }
+
+  // ─── Public profile (wildcard — must be last) ─────────────────────────────────
+
+  @Get(':id')
+  getUser(@Param('id') id: string) {
+    return this.users.findPublicProfile(id);
   }
 }
