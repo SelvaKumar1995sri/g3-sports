@@ -21,8 +21,8 @@ export default function UsersPage() {
 
   const filtered = users.filter(
     (u) =>
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.displayName.toLowerCase().includes(search.toLowerCase()),
+      (u.email ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (u.displayName ?? (u as any).fullName ?? '').toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -65,8 +65,8 @@ export default function UsersPage() {
                   key={user.id}
                   className="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
                 >
-                  <td className="px-5 py-3 font-medium text-white">{user.displayName}</td>
-                  <td className="px-5 py-3 text-muted">{user.email}</td>
+                  <td className="px-5 py-3 font-medium text-white">{user.displayName ?? (user as any).fullName ?? '—'}</td>
+                  <td className="px-5 py-3 text-muted">{user.email ?? (user as any).phone ?? '—'}</td>
                   <td className="px-5 py-3">
                     <select
                       value={user.role}
