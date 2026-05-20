@@ -94,8 +94,12 @@ All registered users are **Players** by default. Scorer and Organizer are permis
 - **My Profile** — own public profile + "Request Organizer Access" button
 - **Role Upgrade Request Screen** — submit request with reason, view current status (pending/approved/denied)
 
-### Scorer (Player assigned to a match)
-- **My Assigned Matches** — list of matches I'm scoring today
+### Scorer (Player assigned to a tournament by organizer)
+- **My Fixtures** — full fixture list for the tournament I'm assigned to score
+- **Start Match Screen** — scorer picks a match from fixtures, then sets:
+  - Points per set: **11** or **21**
+  - Deuce rule: **Golden Point** (next point wins) or **Standard** (2-point lead required)
+  - Taps "Start Match" → match status changes to LIVE
 - **Live Scoring Screen** — badminton scorer UI:
   - Current set number, score per team
   - "Win Rally A" button (large, left)
@@ -104,17 +108,16 @@ All registered users are **Players** by default. Scorer and Organizer are permis
   - "Undo" button (bottom)
   - Service indicator (who serves next, auto-tracked)
   - Set summary bar (sets won per team)
-  - "End Match" confirmation dialog
+  - "End Match" confirmation dialog → confirms winner → match marked COMPLETED
+- **Result reflects in fixtures automatically** — bracket/fixture updates when match is COMPLETED
 
 ### Organizer (approved by admin)
 - **My Tournaments** — list of tournaments I created
-- **Create Tournament** — name, sport (Badminton), format, dates, location, scoring config:
-  - Points per set: **11** or **21**
-  - Deuce rule: **Golden Point** (next point wins) or **Standard** (2-point lead)
-- **Manage Registrations** — approve/reject team registrations
-- **Schedule Matches** — assign teams to match slots, set time/ground
-- **Assign Scorer** — pick a registered player to score a specific match
-- **Generate Bracket** — trigger bracket generation via backend API
+- **Create Tournament** — name, sport (Badminton), format, start date, end date, location, **registration deadline**
+- **Manage Registrations** — approve/reject team registrations (only open until registration deadline)
+- **Generate Fixtures** — available only after registration deadline has passed; triggers bracket generation
+- **Assign Scorer** — pick a registered player as scorer for the whole tournament (they score all matches in the fixture)
+- **View Bracket** — see fixture progress as matches complete
 
 ---
 
@@ -175,9 +178,44 @@ New DB table: `role_request` — columns: `id`, `userId`, `reason`, `status` (PE
 
 ## Live Scoring — Badminton
 
-### Scoring Configuration (Organizer sets when creating tournament)
+### Tournament & Fixture Flow
 
-Organizer picks **two settings** before the tournament starts. All matches in that tournament follow the same rules.
+```
+1. Organizer creates tournament
+      → sets name, sport, format, start/end dates, location
+      → sets registration deadline date
+
+2. Teams register before deadline
+      → organizer approves/rejects registrations
+
+3. Registration deadline passes
+      → "Generate Fixtures" button unlocks for organizer
+      → organizer generates bracket (POST /brackets/:tournamentId/generate)
+
+4. Organizer assigns scorer
+      → picks a registered player as scorer for the whole tournament
+      → scorer can now see and start all matches in the fixture
+
+5. Scorer opens "My Fixtures"
+      → sees all matches in the bracket (PENDING / LIVE / COMPLETED)
+      → picks a PENDING match → taps "Start Match"
+
+6. Start Match — scorer chooses scoring config:
+      → Points per set: 11 or 21
+      → Deuce rule: Golden Point or Standard
+      → Taps confirm → match status → LIVE
+
+7. Scorer records live points rally by rally
+
+8. Match ends → scorer confirms winner
+      → match status → COMPLETED
+      → result reflected in bracket automatically
+      → next round match unlocks (winner advances)
+```
+
+### Scoring Configuration (Scorer sets when starting each match)
+
+The scorer picks **two settings** when starting a match from the fixture. Each match can have different settings if needed.
 
 **Setting 1 — Points per set:**
 | Option | Description |
@@ -188,28 +226,28 @@ Organizer picks **two settings** before the tournament starts. All matches in th
 **Setting 2 — Deuce rule** (applies when tied at 10-10 or 20-20):
 | Option | Description |
 |---|---|
-| **Golden Point** | The very next point wins the set — sudden death, no extended play |
-| **Standard deuce** | First team to gain a 2-point lead wins the set |
+| **Golden Point** | The very next point wins the set — sudden death |
+| **Standard** | First team to gain a 2-point lead wins the set |
 
 **Examples:**
-- `21 points + Standard deuce` → classic BWF (play to 21, deuce possible, max 30-29 with no golden point)
-- `21 points + Golden Point` → play to 21, if 20-20 the next single point decides the set
-- `11 points + Golden Point` → short format, if 10-10 the next single point decides
-- `11 points + Standard deuce` → play to 11, if 10-10 first to lead by 2 wins
+- `21 pts + Standard` → classic BWF (deuce possible)
+- `21 pts + Golden Point` → play to 21, if 20-20 next point wins
+- `11 pts + Golden Point` → short format, if 10-10 next point wins
+- `11 pts + Standard` → play to 11, if 10-10 first +2 lead wins
 
-**Stored on the tournament record:**
+**Stored on the match record when started:**
 ```json
 {
   "scoringConfig": {
-    "pointsPerSet": 11,          // 11 or 21
-    "deuceRule": "GOLDEN_POINT"  // "GOLDEN_POINT" or "STANDARD"
+    "pointsPerSet": 21,
+    "deuceRule": "GOLDEN_POINT"
   }
 }
 ```
 
 ### Scoring Rules Enforced at Runtime
 - Best of 3 sets
-- Points per set: from tournament `scoringConfig.pointsPerSet`
+- Points per set: from match `scoringConfig.pointsPerSet`
 - At tie (10-10 or 20-20): apply `scoringConfig.deuceRule`
   - `GOLDEN_POINT` → next point wins set immediately
   - `STANDARD` → keep playing until one team leads by 2
@@ -239,7 +277,10 @@ All spectators receive update < 1 second
 
 Undo: `DELETE /api/score/badminton/:matchId/undo`
 
-> **Backend change required:** The `Tournament` entity and `CreateTournamentDto` must be extended to store `scoringConfig` (`pointsPerSet: number`, `deuceRule: 'GOLDEN_POINT' | 'STANDARD'`). The score service must read this config when evaluating set completion logic.
+> **Backend changes required:**
+> 1. `Tournament` entity + `CreateTournamentDto` — add `registrationDeadline: Date` field. Bracket generation endpoint must reject requests before this date.
+> 2. `Match` entity — add `scoringConfig: { pointsPerSet: number, deuceRule: 'GOLDEN_POINT' | 'STANDARD' }` JSON column. Add `PATCH /matches/:id/start` endpoint (scorer sets config, status → LIVE) and `PATCH /matches/:id/complete` endpoint (confirms winner, status → COMPLETED, bracket advances).
+> 3. Score service — read `match.scoringConfig` when evaluating set-win and match-win conditions.
 
 ---
 
@@ -264,10 +305,10 @@ Repository (Dio) → Provider (Riverpod) → Screen (Flutter Widget)
 | Feature | Endpoints |
 |---|---|
 | Auth | `POST /auth/verify-otp`, `POST /auth/check-username`, `POST /auth/suggest-usernames` |
-| Tournaments | `GET /tournaments`, `GET /tournaments/:id`, `POST /tournaments` (organizer) |
-| Bracket | `GET /brackets/:tournamentId`, `POST /brackets/:tournamentId/generate` |
+| Tournaments | `GET /tournaments`, `GET /tournaments/:id`, `POST /tournaments` (organizer — includes `registrationDeadline`) |
+| Bracket | `GET /brackets/:tournamentId`, `POST /brackets/:tournamentId/generate` (only after registration deadline) |
 | Teams | `GET /teams`, `POST /teams`, `POST /teams/:id/members`, `GET /teams/:id` |
-| Matches | `GET /matches`, `GET /matches/:id`, `POST /matches`, `PATCH /matches/:id/toss` |
+| Matches | `GET /matches`, `GET /matches/:id`, `PATCH /matches/:id/start` (scorer starts with scoringConfig), `PATCH /matches/:id/complete` (scorer confirms winner) |
 | Scoring | `GET /score/badminton/:matchId`, `POST /score/badminton/point`, `DELETE /score/badminton/:matchId/undo` |
 | Users | `GET /users/:id` (public profile), `POST /users/role-requests` (new) |
 | Admin | `GET /admin/role-requests` (new), `PATCH /admin/role-requests/:id` (new) |
