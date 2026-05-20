@@ -40,9 +40,12 @@ export class ScoreGateway
     private readonly cfg: ConfigService,
     private readonly jwt: JwtService,
   ) {
+    const redisTls = cfg.get<string>('REDIS_TLS') === 'true';
     this.redis = new Redis({
       host: cfg.get<string>('REDIS_HOST', 'localhost'),
       port: cfg.get<number>('REDIS_PORT', 6379),
+      password: cfg.get<string>('REDIS_PASSWORD') || undefined,
+      tls: redisTls ? {} : undefined,
       lazyConnect: true,
     });
 

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_exception.dart';
 
-const _baseUrl = 'http://localhost:3001/api';
+const _baseUrl = 'http://192.168.31.93:3001/api';
 const _storage = FlutterSecureStorage();
 
 Dio createDio() {
