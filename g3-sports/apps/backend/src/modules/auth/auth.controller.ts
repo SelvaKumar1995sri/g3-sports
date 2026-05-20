@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
@@ -45,9 +45,19 @@ export class AuthController {
     return this.auth.checkUsername(dto.username);
   }
 
+  @Get('check-username')
+  checkUsernameGet(@Query('username') username: string) {
+    return this.auth.checkUsername(username ?? '');
+  }
+
   @Post('suggest-usernames')
   suggestUsernames(@Body() dto: SuggestUsernamesDto) {
     return this.auth.suggestUsernames(dto.base ?? 'player');
+  }
+
+  @Get('suggest-usernames')
+  suggestUsernamesGet(@Query('base') base: string) {
+    return this.auth.suggestUsernames(base ?? 'player');
   }
 
   @Post('refresh-token')
