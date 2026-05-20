@@ -56,4 +56,7 @@ export class Match {
 
   @Column({ name: 'socket_room', type: 'varchar', nullable: true })
   socketRoom: string | null;
+
+  @Column({ name: 'scoring_config', type: 'jsonb', nullable: true })
+  scoringConfig: { pointsPerSet: number; deuceRule: 'GOLDEN_POINT' | 'STANDARD' } | null;
 }
