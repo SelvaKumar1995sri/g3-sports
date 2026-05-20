@@ -19,7 +19,9 @@
       "Bash(echo \"BUILD_EXIT:$?\")",
       "Bash(pnpm approve-builds *)",
       "PowerShell(cd \"D:\\\\Version_6.36\\\\selva\\\\G4_SportsForce\\\\g3-sports\\\\apps\\\\backend\"; pnpm build; Write-Host \"Exit: $LASTEXITCODE\")",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(pnpm --filter @g3/backend build)",
+      "Bash(git -C \"D:/Version_6.36/selva/G4_SportsForce/g3-sports\" show --stat c699fb2)"
     ]
   }
 }
