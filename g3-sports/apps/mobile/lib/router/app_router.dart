@@ -50,9 +50,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login-username', builder: (_, __) => const UsernameLoginScreen()),
       GoRoute(
         path: '/otp',
-        builder: (_, state) => OtpScreen(
-          verificationId: state.extra as String,
-        ),
+        builder: (_, state) => OtpScreen(extra: state.extra),
       ),
       GoRoute(path: '/profile-setup', builder: (_, __) => const ProfileSetupScreen()),
       GoRoute(path: '/tournaments', builder: (_, __) => const TournamentListScreen()),

@@ -101,6 +101,12 @@ export class AuthService {
     return { available: !existing };
   }
 
+  async checkPhone(phone: string): Promise<{ available: boolean }> {
+    if (!phone || phone.length < 10) return { available: true };
+    const existing = await this.users.findOne({ where: { phone } });
+    return { available: !existing };
+  }
+
   async suggestUsernames(base: string): Promise<{ suggestions: string[] }> {
     const clean = base.toLowerCase().replace(/[^a-z0-9]/g, '') || 'player';
     const candidates = [

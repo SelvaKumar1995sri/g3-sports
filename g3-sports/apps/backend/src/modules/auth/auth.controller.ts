@@ -57,6 +57,11 @@ export class AuthController {
     return this.auth.checkUsername(username ?? '');
   }
 
+  @Get('check-phone')
+  checkPhone(@Query('phone') phone: string) {
+    return this.auth.checkPhone(phone ?? '');
+  }
+
   @Post('suggest-usernames')
   suggestUsernames(@Body() dto: SuggestUsernamesDto) {
     return this.auth.suggestUsernames(dto.base ?? 'player');
