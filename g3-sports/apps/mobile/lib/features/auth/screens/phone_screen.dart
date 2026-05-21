@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
@@ -21,14 +22,17 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
   bool _checkingUsername = false;
   bool _checkingPhone    = false;
   bool? _usernameAvailable;
-  bool? _phoneAvailable;
+  bool? _phoneAvailable;   // null=unchecked, true=available, false=taken
   String? _error;
-  Timer? _debounce;
+  Timer? _usernameDebounce;
   Timer? _phoneDebounce;
+
+  // Phone is always +91 + 10 digits
+  String get _normalizedPhone => '+91${_phoneCtrl.text.trim()}';
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _usernameDebounce?.cancel();
     _phoneDebounce?.cancel();
     _phoneCtrl.dispose();
     _nameCtrl.dispose();
@@ -36,31 +40,40 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
     super.dispose();
   }
 
+  // ── Phone uniqueness check ──────────────────────────────────────────────────
   void _onPhoneChanged(String value) {
     _phoneDebounce?.cancel();
-    final clean = value.trim();
-    final normalized = clean.startsWith('+') ? clean : '+91$clean';
+    final digits = value.trim().replaceAll(RegExp(r'\D'), '');
 
-    if (normalized.length < 10) {
-      setState(() { _phoneAvailable = null; });
+    if (digits.length < 10) {
+      // Reset whenever incomplete
+      setState(() { _phoneAvailable = null; _checkingPhone = false; });
       return;
     }
 
     setState(() { _checkingPhone = true; _phoneAvailable = null; });
+
     _phoneDebounce = Timer(const Duration(milliseconds: 700), () async {
-      try {
-        final encoded = Uri.encodeComponent(normalized);
-        final resp = await ref.read(dioProvider).get('/auth/check-phone?phone=$encoded');
-        final available = resp.data['available'] as bool? ?? true;
-        if (mounted) setState(() { _phoneAvailable = available; _checkingPhone = false; });
-      } catch (_) {
-        if (mounted) setState(() { _checkingPhone = false; });
-      }
+      await _doPhoneCheck();
     });
   }
 
+  Future<bool> _doPhoneCheck() async {
+    try {
+      final encoded = Uri.encodeComponent(_normalizedPhone);
+      final resp = await ref.read(dioProvider).get('/auth/check-phone?phone=$encoded');
+      final available = resp.data['available'] as bool? ?? true;
+      if (mounted) setState(() { _phoneAvailable = available; _checkingPhone = false; });
+      return available;
+    } catch (_) {
+      if (mounted) setState(() { _checkingPhone = false; });
+      return true; // Allow on error so we don't block indefinitely
+    }
+  }
+
+  // ── Username uniqueness check ───────────────────────────────────────────────
   void _onUsernameChanged(String value) {
-    _debounce?.cancel();
+    _usernameDebounce?.cancel();
     final clean = value.trim().toLowerCase();
 
     if (clean.isEmpty) {
@@ -74,7 +87,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
 
     setState(() { _checkingUsername = true; _usernameAvailable = null; });
 
-    _debounce = Timer(const Duration(milliseconds: 600), () async {
+    _usernameDebounce = Timer(const Duration(milliseconds: 600), () async {
       try {
         final resp = await ref.read(dioProvider).get('/auth/check-username?username=$clean');
         final available = resp.data['available'] as bool? ?? false;
@@ -85,30 +98,19 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
     });
   }
 
+  // ── Send OTP ────────────────────────────────────────────────────────────────
   Future<void> _sendOtp() async {
-    final phone    = _phoneCtrl.text.trim();
-    final name     = _nameCtrl.text.trim();
-    final username = _usernameCtrl.text.trim().toLowerCase();
+    final phoneDigits = _phoneCtrl.text.trim().replaceAll(RegExp(r'\D'), '');
+    final name        = _nameCtrl.text.trim();
+    final username    = _usernameCtrl.text.trim().toLowerCase();
 
-    if (phone.isEmpty) {
-      setState(() => _error = 'Please enter your phone number');
-      return;
-    }
-    // Basic phone format validation
-    final normalized = phone.startsWith('+') ? phone : '+91$phone';
-    final digits = normalized.replaceAll(RegExp(r'\D'), '');
-    if (digits.length < 10 || digits.length > 15) {
-      setState(() => _error = 'Enter a valid phone number (e.g. +91 9876543210)');
-      return;
-    }
-    if (_phoneAvailable == false) {
-      setState(() => _error = 'This phone number is already registered. Use "Login with username" instead.');
-      return;
-    }
+    // ── Validate name
     if (name.isEmpty) {
       setState(() => _error = 'Please enter your display name');
       return;
     }
+
+    // ── Validate username
     if (username.length < 3) {
       setState(() => _error = 'Username must be at least 3 characters');
       return;
@@ -117,20 +119,46 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
       setState(() => _error = 'That username is already taken');
       return;
     }
-    if (_usernameAvailable == null && _usernameCtrl.text.trim().length >= 3) {
-      setState(() => _error = 'Please wait for username check to complete');
+    if (_checkingUsername) {
+      setState(() => _error = 'Checking username… please wait');
+      return;
+    }
+
+    // ── Validate phone digits
+    if (phoneDigits.isEmpty) {
+      setState(() => _error = 'Please enter your 10-digit mobile number');
+      return;
+    }
+    if (phoneDigits.length != 10) {
+      setState(() => _error = 'Enter exactly 10 digits (country code +91 is added automatically)');
       return;
     }
 
     setState(() { _loading = true; _error = null; });
 
+    // ── Phone uniqueness: if debounce hasn't resolved yet, check now synchronously
+    bool phoneOk;
+    if (_phoneAvailable != null) {
+      phoneOk = _phoneAvailable!;
+    } else {
+      phoneOk = await _doPhoneCheck();
+    }
+
+    if (!phoneOk) {
+      setState(() {
+        _loading = false;
+        _error = 'This number is already registered. Use "Login with username" instead.';
+      });
+      return;
+    }
+
+    // ── Send Firebase OTP
     final svc = ref.read(authServiceProvider);
     await svc.sendOtp(
-      phoneNumber: phone.startsWith('+') ? phone : '+91$phone',
+      phoneNumber: _normalizedPhone,
       onCodeSent: (vid) {
         if (mounted) {
           setState(() => _loading = false);
-          // Pass name + username to OTP screen so it can save them after verification
           context.push('/otp', extra: {
             'verificationId': vid,
             'fullName': name,
@@ -144,6 +172,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
     );
   }
 
+  // ── Build ───────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,68 +193,40 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                   style: TextStyle(color: Colors.white38, fontSize: 14)),
               const SizedBox(height: 36),
 
-              // ── Display Name ──────────────────────────────────────────
-              const Text('YOUR NAME',
-                  style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 2)),
+              // ── YOUR NAME ─────────────────────────────────────────────
+              _label('YOUR NAME'),
               const SizedBox(height: 8),
               TextField(
                 controller: _nameCtrl,
                 textCapitalization: TextCapitalization.words,
                 style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'e.g. Selva Kumar',
-                  hintStyle: const TextStyle(color: Colors.white24),
-                  filled: true,
-                  fillColor: const Color(0xFF111118),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFF00E5FF)),
-                  ),
-                ),
+                decoration: _inputDecoration(hint: 'e.g. Selva Kumar'),
               ),
               const SizedBox(height: 20),
 
-              // ── Username ──────────────────────────────────────────────
-              const Text('USERNAME',
-                  style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 2)),
+              // ── USERNAME ──────────────────────────────────────────────
+              _label('USERNAME'),
               const SizedBox(height: 4),
-              const Text('Min 3 characters, letters and numbers only',
+              const Text('Min 3 chars · letters, numbers and _ only',
                   style: TextStyle(color: Colors.white24, fontSize: 11)),
               const SizedBox(height: 8),
               TextField(
                 controller: _usernameCtrl,
                 style: const TextStyle(color: Colors.white),
                 onChanged: _onUsernameChanged,
-                decoration: InputDecoration(
-                  hintText: 'e.g. selva_g3',
-                  hintStyle: const TextStyle(color: Colors.white24),
-                  prefixText: '@',
-                  prefixStyle: const TextStyle(color: Color(0xFF00E5FF)),
-                  filled: true,
-                  fillColor: const Color(0xFF111118),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: _usernameAvailable == true
-                          ? const Color(0xFFA3E635)
-                          : _usernameAvailable == false
-                              ? Colors.redAccent
-                              : const Color(0xFF00E5FF),
-                    ),
-                  ),
-                  suffixIcon: _checkingUsername
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox(
-                            width: 16, height: 16,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Color(0xFF00E5FF)),
-                          ),
-                        )
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+                ],
+                decoration: _inputDecoration(
+                  hint: 'e.g. selva_g3',
+                  prefix: '@',
+                  borderColor: _usernameAvailable == true
+                      ? const Color(0xFFA3E635)
+                      : _usernameAvailable == false
+                          ? Colors.redAccent
+                          : null,
+                  suffix: _checkingUsername
+                      ? _spinner()
                       : _usernameAvailable == true
                           ? const Icon(Icons.check_circle, color: Color(0xFFA3E635))
                           : _usernameAvailable == false
@@ -233,71 +234,96 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                               : null,
                 ),
               ),
-              if (_usernameAvailable == false) ...[
-                const SizedBox(height: 6),
-                const Text('Username already taken — try another',
-                    style: TextStyle(color: Colors.redAccent, fontSize: 12)),
-              ],
-              if (_usernameAvailable == true) ...[
-                const SizedBox(height: 6),
-                const Text('✓ Username is available!',
-                    style: TextStyle(color: Color(0xFFA3E635), fontSize: 12)),
-              ],
+              if (_usernameAvailable == false)
+                _hint('Username already taken — try another', Colors.redAccent),
+              if (_usernameAvailable == true)
+                _hint('✓ Username available!', const Color(0xFFA3E635)),
               const SizedBox(height: 20),
 
-              // ── Phone Number ──────────────────────────────────────────
-              const Text('PHONE NUMBER',
-                  style: TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 2)),
+              // ── PHONE NUMBER ──────────────────────────────────────────
+              _label('MOBILE NUMBER'),
+              const SizedBox(height: 4),
+              const Text('India (+91) — enter 10 digits only',
+                  style: TextStyle(color: Colors.white24, fontSize: 11)),
               const SizedBox(height: 8),
-              TextField(
-                controller: _phoneCtrl,
-                keyboardType: TextInputType.phone,
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-                onChanged: _onPhoneChanged,
-                decoration: InputDecoration(
-                  hintText: '+91 9876543210',
-                  hintStyle: const TextStyle(color: Colors.white24),
-                  filled: true,
-                  fillColor: const Color(0xFF111118),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: _phoneAvailable == false
-                          ? Colors.redAccent
-                          : const Color(0xFF00E5FF),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Fixed country code box
+                  Container(
+                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF111118),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text('+91',
+                        style: TextStyle(color: Color(0xFF00E5FF), fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(width: 10),
+                  // 10-digit input
+                  Expanded(
+                    child: TextField(
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.number,
+                      maxLength: 10,
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      onChanged: _onPhoneChanged,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        counterText: '',
+                        hintText: '9876543210',
+                        hintStyle: const TextStyle(color: Colors.white24),
+                        filled: true,
+                        fillColor: const Color(0xFF111118),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: _phoneAvailable == false
+                                ? Colors.redAccent
+                                : const Color(0xFF00E5FF),
+                            width: 1.5,
+                          ),
+                        ),
+                        suffixIcon: _checkingPhone
+                            ? _spinner()
+                            : _phoneAvailable == false
+                                ? const Icon(Icons.cancel, color: Colors.redAccent)
+                                : _phoneAvailable == true
+                                    ? const Icon(Icons.check_circle, color: Color(0xFFA3E635))
+                                    : null,
+                      ),
                     ),
                   ),
-                  suffixIcon: _checkingPhone
-                      ? const Padding(
-                          padding: EdgeInsets.all(14),
-                          child: SizedBox(
-                            width: 16, height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00E5FF)),
-                          ),
-                        )
-                      : _phoneAvailable == false
-                          ? const Icon(Icons.cancel, color: Colors.redAccent)
-                          : null,
-                ),
+                ],
               ),
               if (_phoneAvailable == false) ...[
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () => context.go('/login-username'),
                   child: const Text.rich(TextSpan(children: [
-                    TextSpan(text: 'Phone already registered. ', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
-                    TextSpan(text: 'Login with username →', style: TextStyle(color: Color(0xFF00E5FF), fontSize: 12, fontWeight: FontWeight.bold)),
+                    TextSpan(
+                        text: '⚠ Number already registered. ',
+                        style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                    TextSpan(
+                        text: 'Login with username →',
+                        style: TextStyle(
+                            color: Color(0xFF00E5FF),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold)),
                   ])),
                 ),
               ],
 
               if (_error != null) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
 
               SizedBox(
                 width: double.infinity,
@@ -339,6 +365,47 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  Widget _label(String text) => Text(text,
+      style: const TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 2));
+
+  Widget _hint(String text, Color color) => Padding(
+    padding: const EdgeInsets.only(top: 6),
+    child: Text(text, style: TextStyle(color: color, fontSize: 12)),
+  );
+
+  Widget _spinner() => const Padding(
+    padding: EdgeInsets.all(12),
+    child: SizedBox(
+      width: 16, height: 16,
+      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00E5FF)),
+    ),
+  );
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    String? prefix,
+    Color? borderColor,
+    Widget? suffix,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white24),
+      prefixText: prefix,
+      prefixStyle: const TextStyle(color: Color(0xFF00E5FF)),
+      filled: true,
+      fillColor: const Color(0xFF111118),
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: borderColor ?? const Color(0xFF00E5FF), width: 1.5),
+      ),
+      suffixIcon: suffix,
     );
   }
 }
