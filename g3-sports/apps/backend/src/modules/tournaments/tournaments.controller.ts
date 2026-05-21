@@ -3,6 +3,8 @@ import { TournamentsService } from './tournaments.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { User } from '../../database/entities/user.entity';
 import { TournamentStatus } from '@g3/types';
 
 @Controller('tournaments')
@@ -56,5 +58,41 @@ export class TournamentsController {
     @Request() req: { user: { id: string } },
   ) {
     return this.svc.updateStatus(id, status, req.user.id);
+  }
+
+  // ─── Join Requests ────────────────────────────────────────────────────────────
+
+  @Post(':id/join-requests')
+  @UseGuards(JwtAuthGuard)
+  requestJoin(
+    @Param('id') id: string,
+    @Body('type') type: 'singles' | 'doubles',
+    @Body('partnerPhone') partnerPhone: string | undefined,
+    @CurrentUser() user: User,
+  ) {
+    return this.svc.createJoinRequest(id, user.id, type ?? 'singles', partnerPhone);
+  }
+
+  @Get(':id/join-requests')
+  @UseGuards(JwtAuthGuard)
+  getJoinRequests(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.svc.getJoinRequests(id, user.id);
+  }
+
+  @Get(':id/join-requests/mine')
+  @UseGuards(JwtAuthGuard)
+  getMyJoinRequest(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.svc.getMyJoinRequest(id, user.id);
+  }
+
+  @Patch(':id/join-requests/:reqId')
+  @UseGuards(JwtAuthGuard)
+  reviewJoinRequest(
+    @Param('id') id: string,
+    @Param('reqId') reqId: string,
+    @Body('action') action: 'approve' | 'deny',
+    @CurrentUser() user: User,
+  ) {
+    return this.svc.reviewJoinRequest(id, reqId, action, user.id);
   }
 }

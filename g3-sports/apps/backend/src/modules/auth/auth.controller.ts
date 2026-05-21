@@ -40,6 +40,13 @@ export class AuthController {
     return this.auth.verifyOtp(dto);
   }
 
+  /** Returning user login — username only (no OTP required after first registration). */
+  @Post('login-username')
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
+  loginWithUsername(@Body('username') username: string) {
+    return this.auth.loginWithUsername(username ?? '');
+  }
+
   @Post('check-username')
   checkUsername(@Body() dto: CheckUsernameDto) {
     return this.auth.checkUsername(dto.username);

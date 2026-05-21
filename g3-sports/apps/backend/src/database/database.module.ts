@@ -16,6 +16,7 @@ import { PlayerStat } from './entities/player-stat.entity';
 import { Notification } from './entities/notification.entity';
 import { BracketMatch } from './entities/bracket-match.entity';
 import { RoleRequest } from './entities/role-request.entity';
+import { JoinRequest } from './entities/join-request.entity';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { RoleRequest } from './entities/role-request.entity';
         entities: [
           User, UserProfile, Team, TeamMember, Tournament, Ground,
           TournamentTeam, Match, CricketScore, BadmintonScore,
-          PickleballScore, PlayerStat, Notification, BracketMatch, RoleRequest,
+          PickleballScore, PlayerStat, Notification, BracketMatch, RoleRequest, JoinRequest,
         ],
         synchronize: cfg.get('DB_SYNC') === 'true' || cfg.get('NODE_ENV') !== 'production',
         logging: cfg.get('NODE_ENV') === 'development',

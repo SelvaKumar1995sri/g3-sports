@@ -87,6 +87,15 @@ export class AuthService {
     return { ...tokens, user };
   }
 
+  async loginWithUsername(username: string): Promise<AuthTokens & { user: User }> {
+    const user = await this.users.findOne({
+      where: { username: username.trim().toLowerCase(), isActive: true },
+    });
+    if (!user) throw new UnauthorizedException('Username not found. Please register first.');
+    const tokens = await this.issueTokens(user);
+    return { ...tokens, user };
+  }
+
   async checkUsername(username: string): Promise<{ available: boolean }> {
     const existing = await this.users.findOne({ where: { username } });
     return { available: !existing };

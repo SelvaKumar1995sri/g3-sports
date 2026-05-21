@@ -19,6 +19,7 @@ import '../features/organizer/screens/create_tournament_screen.dart';
 import '../features/organizer/screens/manage_registrations_screen.dart';
 import '../features/profile/screens/my_profile_screen.dart';
 import '../features/profile/screens/public_profile_screen.dart';
+import '../features/auth/screens/username_login_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final user = ref.watch(currentUserProvider);
@@ -28,7 +29,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isAuth = user != null;
       final path = state.matchedLocation;
-      final authPaths = ['/login', '/otp', '/profile-setup'];
+      final authPaths = ['/login', '/login-username', '/otp', '/profile-setup'];
 
       if (!isAuth && !authPaths.contains(path)) {
         const publicPaths = ['/tournaments', '/profile'];
@@ -39,6 +40,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const PhoneScreen()),
+      GoRoute(path: '/login-username', builder: (_, __) => const UsernameLoginScreen()),
       GoRoute(
         path: '/otp',
         builder: (_, state) => OtpScreen(

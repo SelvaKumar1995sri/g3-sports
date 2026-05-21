@@ -84,6 +84,18 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                       : const Text('Send OTP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
+              const SizedBox(height: 28),
+              const Divider(color: Colors.white12),
+              const SizedBox(height: 20),
+              Center(
+                child: GestureDetector(
+                  onTap: () => context.push('/login-username'),
+                  child: const Text.rich(TextSpan(children: [
+                    TextSpan(text: 'Already registered? ', style: TextStyle(color: Colors.white38)),
+                    TextSpan(text: 'Login with username →', style: TextStyle(color: Color(0xFF00E5FF), fontWeight: FontWeight.bold)),
+                  ])),
+                ),
+              ),
             ],
           ),
         ),

@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tournament } from '../../database/entities/tournament.entity';
 import { TournamentTeam } from '../../database/entities/tournament-team.entity';
 import { Team } from '../../database/entities/team.entity';
+import { JoinRequest } from '../../database/entities/join-request.entity';
 import { TournamentStatus } from '@g3/types';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
@@ -14,6 +15,7 @@ export class TournamentsService {
     @InjectRepository(Tournament) private tournamentRepo: Repository<Tournament>,
     @InjectRepository(TournamentTeam) private ttRepo: Repository<TournamentTeam>,
     @InjectRepository(Team) private teamRepo: Repository<Team>,
+    @InjectRepository(JoinRequest) private joinRequestRepo: Repository<JoinRequest>,
   ) {}
 
   create(dto: CreateTournamentDto, organizerId: string): Promise<Tournament> {
@@ -87,5 +89,62 @@ export class TournamentsService {
     if (t.organizer.id !== userId) throw new ForbiddenException();
     t.status = status;
     return this.tournamentRepo.save(t);
+  }
+
+  // ─── Join Requests ────────────────────────────────────────────────────────────
+
+  async createJoinRequest(
+    tournamentId: string,
+    playerId: string,
+    type: 'singles' | 'doubles',
+    partnerPhone?: string,
+  ): Promise<JoinRequest> {
+    const tournament = await this.findOne(tournamentId);
+    if (tournament.organizer?.id === playerId) {
+      throw new BadRequestException('Organizer cannot join their own tournament');
+    }
+    const existing = await this.joinRequestRepo.findOne({
+      where: { tournament: { id: tournamentId }, player: { id: playerId } },
+    });
+    if (existing) throw new ConflictException('You have already requested to join this tournament');
+
+    const req = this.joinRequestRepo.create({
+      tournament: { id: tournamentId },
+      player: { id: playerId },
+      type,
+      partnerPhone: type === 'doubles' ? (partnerPhone ?? null) : null,
+      status: 'pending',
+    });
+    return this.joinRequestRepo.save(req);
+  }
+
+  async getJoinRequests(tournamentId: string, requestingUserId: string): Promise<JoinRequest[]> {
+    const tournament = await this.findOne(tournamentId);
+    if (tournament.organizer?.id !== requestingUserId) throw new ForbiddenException();
+    return this.joinRequestRepo.find({
+      where: { tournament: { id: tournamentId } },
+      relations: ['player'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getMyJoinRequest(tournamentId: string, playerId: string): Promise<JoinRequest | null> {
+    return this.joinRequestRepo.findOne({
+      where: { tournament: { id: tournamentId }, player: { id: playerId } },
+    });
+  }
+
+  async reviewJoinRequest(
+    tournamentId: string,
+    requestId: string,
+    action: 'approve' | 'deny',
+    organizerId: string,
+  ): Promise<JoinRequest> {
+    const tournament = await this.findOne(tournamentId);
+    if (tournament.organizer?.id !== organizerId) throw new ForbiddenException();
+    const req = await this.joinRequestRepo.findOne({ where: { id: requestId } });
+    if (!req) throw new NotFoundException('Join request not found');
+    req.status = action === 'approve' ? 'approved' : 'denied';
+    return this.joinRequestRepo.save(req);
   }
 }

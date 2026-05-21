@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
+import '../../tournaments/providers/tournaments_provider.dart';
 
 class CreateTournamentScreen extends ConsumerStatefulWidget {
   const CreateTournamentScreen({super.key});
@@ -16,8 +17,13 @@ class _CreateTournamentScreenState extends ConsumerState<CreateTournamentScreen>
   String _startDate = '';
   String _endDate = '';
   String _deadline = '';
+  String _sport = 'badminton';
+  String _format = 'knockout';
   bool _loading = false;
   String? _error;
+
+  static const _sports = ['badminton', 'cricket', 'football', 'basketball', 'volleyball', 'tennis', 'pickleball'];
+  static const _formats = ['knockout', 'league', 'group_knockout', 'round_robin'];
 
   Future<void> _pickDate(void Function(String) onPicked) async {
     final picked = await showDatePicker(
@@ -35,17 +41,38 @@ class _CreateTournamentScreenState extends ConsumerState<CreateTournamentScreen>
     try {
       await ref.read(dioProvider).post('/tournaments', data: {
         'name': _nameCtrl.text.trim(),
-        'sport': 'badminton',
-        'format': 'SINGLE_ELIMINATION',
+        'sport': _sport,
+        'format': _format,
         'startDate': _startDate,
         'endDate': _endDate,
         'registrationDeadline': _deadline.isEmpty ? null : _deadline,
         'location': _locationCtrl.text.trim().isEmpty ? null : _locationCtrl.text.trim(),
       });
+      ref.invalidate(tournamentsProvider);
       if (mounted) context.pop();
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
     }
+  }
+
+  Widget _dropdownField(String label, String value, List<String> options, ValueChanged<String?> onChanged) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      dropdownColor: const Color(0xFF111118),
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white38),
+        filled: true,
+        fillColor: const Color(0xFF111118),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      ),
+      items: options.map((o) => DropdownMenuItem(
+        value: o,
+        child: Text(o.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 14)),
+      )).toList(),
+      onChanged: onChanged,
+    );
   }
 
   Widget _dateField(String label, String value, VoidCallback onTap) {
@@ -97,6 +124,10 @@ class _CreateTournamentScreenState extends ConsumerState<CreateTournamentScreen>
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             ),
           ),
+          const SizedBox(height: 12),
+          _dropdownField('Sport', _sport, _sports, (v) => setState(() => _sport = v!)),
+          const SizedBox(height: 12),
+          _dropdownField('Format', _format, _formats, (v) => setState(() => _format = v!)),
           const SizedBox(height: 12),
           _dateField('Start Date *', _startDate, () => _pickDate((d) => setState(() => _startDate = d))),
           const SizedBox(height: 8),
