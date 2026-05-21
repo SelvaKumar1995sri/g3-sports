@@ -130,6 +130,7 @@ class _UsernameLoginScreenState extends ConsumerState<UsernameLoginScreen> {
             Center(
               child: GestureDetector(
                 onTap: () => context.go('/login'),
+
                 child: const Text.rich(TextSpan(children: [
                   TextSpan(text: 'New user? ', style: TextStyle(color: Colors.white38)),
                   TextSpan(text: 'Register with phone →', style: TextStyle(color: Color(0xFF00E5FF))),

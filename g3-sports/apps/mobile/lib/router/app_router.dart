@@ -31,11 +31,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final path = state.matchedLocation;
       final authPaths = ['/login', '/login-username', '/otp', '/profile-setup'];
 
+      // Not logged in — allow public and auth pages only
       if (!isAuth && !authPaths.contains(path)) {
         const publicPaths = ['/tournaments', '/profile'];
         if (publicPaths.any((p) => path.startsWith(p))) return null;
         return '/tournaments';
       }
+
+      // Logged in but username not set — force profile setup
+      if (isAuth && user!.needsProfileSetup && path != '/profile-setup') {
+        return '/profile-setup';
+      }
+
       return null;
     },
     routes: [

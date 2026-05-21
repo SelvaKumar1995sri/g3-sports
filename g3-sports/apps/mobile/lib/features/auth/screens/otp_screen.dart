@@ -29,7 +29,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       );
       ref.read(currentUserProvider.notifier).state = result.user;
       if (mounted) {
-        if (result.isNewUser || result.user.displayName == null) {
+        if (result.user.needsProfileSetup) {
           context.go('/profile-setup');
         } else if (result.user.isOrganizer) {
           context.go('/my-tournaments');
