@@ -95,4 +95,11 @@ export class TournamentsController {
   ) {
     return this.svc.reviewJoinRequest(id, reqId, action, user.id);
   }
+
+  /** Returns fixture/match info for the current authenticated player in a tournament. */
+  @Get(':id/my-match')
+  @UseGuards(JwtAuthGuard)
+  getMyMatch(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.svc.getMyMatch(id, user.id);
+  }
 }

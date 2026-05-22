@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../shared/models/user.dart';
 
@@ -9,7 +9,14 @@ class AuthService {
   final _storage = const FlutterSecureStorage();
   final _fb = FirebaseAuth.instance;
 
-  AuthService(this._dio);
+  AuthService(this._dio) {
+    // In debug mode — disable app verification so reCAPTCHA never appears.
+    // Test phone numbers (+91 8015569162 → 123456) work without any interruption.
+    // This setting is ignored in release builds automatically.
+    if (kDebugMode && !kIsWeb) {
+      FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
+    }
+  }
 
   Future<String?> loadStoredJwt() => _storage.read(key: 'g3_jwt');
 

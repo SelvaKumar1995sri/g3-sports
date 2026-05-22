@@ -9,6 +9,7 @@ class Tournament {
   final String? registrationDeadline;
   final String? location;
   final Map<String, dynamic> organizer;
+  final Map<String, dynamic> rulesConfig;
 
   const Tournament({
     required this.id,
@@ -21,6 +22,7 @@ class Tournament {
     this.registrationDeadline,
     this.location,
     required this.organizer,
+    this.rulesConfig = const {},
   });
 
   factory Tournament.fromJson(Map<String, dynamic> j) => Tournament(
@@ -34,10 +36,15 @@ class Tournament {
         registrationDeadline: j['registrationDeadline'] as String?,
         location: j['location'] as String?,
         organizer: j['organizer'] as Map<String, dynamic>? ?? {},
+        rulesConfig: j['rulesConfig'] as Map<String, dynamic>? ?? {},
       );
 
   bool get isRegistrationOpen {
+    if (status == 'cancelled' || status == 'completed' || status == 'active') return false;
     if (registrationDeadline == null) return status == 'draft' || status == 'registration';
     return DateTime.now().isBefore(DateTime.parse(registrationDeadline!));
   }
+
+  /// Cancellation reason set by the scheduler when insufficient participants.
+  String? get cancellationReason => rulesConfig['cancellationReason'] as String?;
 }

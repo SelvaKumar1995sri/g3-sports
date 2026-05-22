@@ -41,7 +41,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     }
 
     if (clean.length < 3) {
-      setState(() { _usernameAvailable = false; _suggestions = []; });
+      setState(() { _usernameAvailable = null; _suggestions = []; });
       return;
     }
 

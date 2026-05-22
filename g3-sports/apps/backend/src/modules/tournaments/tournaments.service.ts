@@ -5,6 +5,8 @@ import { Tournament } from '../../database/entities/tournament.entity';
 import { TournamentTeam } from '../../database/entities/tournament-team.entity';
 import { Team } from '../../database/entities/team.entity';
 import { JoinRequest } from '../../database/entities/join-request.entity';
+import { Match } from '../../database/entities/match.entity';
+import { User } from '../../database/entities/user.entity';
 import { TournamentStatus } from '@g3/types';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
@@ -16,6 +18,8 @@ export class TournamentsService {
     @InjectRepository(TournamentTeam) private ttRepo: Repository<TournamentTeam>,
     @InjectRepository(Team) private teamRepo: Repository<Team>,
     @InjectRepository(JoinRequest) private joinRequestRepo: Repository<JoinRequest>,
+    @InjectRepository(Match) private matchRepo: Repository<Match>,
+    @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
 
   create(dto: CreateTournamentDto, organizerId: string): Promise<Tournament> {
@@ -103,10 +107,25 @@ export class TournamentsService {
     if (tournament.organizer?.id === playerId) {
       throw new BadRequestException('Organizer cannot join their own tournament');
     }
+
+    // Check if player already made a direct request
     const existing = await this.joinRequestRepo.findOne({
       where: { tournament: { id: tournamentId }, player: { id: playerId } },
     });
     if (existing) throw new ConflictException('You have already requested to join this tournament');
+
+    // Check if player is already listed as a doubles partner in another request
+    const player = await this.userRepo.findOne({ where: { id: playerId } });
+    if (player?.phone) {
+      const asPartner = await this.joinRequestRepo.findOne({
+        where: { tournament: { id: tournamentId }, partnerPhone: player.phone },
+      });
+      if (asPartner) {
+        throw new ConflictException(
+          'You are already included as a doubles partner in another request for this tournament',
+        );
+      }
+    }
 
     const req = this.joinRequestRepo.create({
       tournament: { id: tournamentId },
@@ -128,10 +147,69 @@ export class TournamentsService {
     });
   }
 
-  async getMyJoinRequest(tournamentId: string, playerId: string): Promise<JoinRequest | null> {
-    return this.joinRequestRepo.findOne({
+  async getMyJoinRequest(tournamentId: string, playerId: string): Promise<(JoinRequest & { isPartner?: boolean }) | null> {
+    // First: check if this player made a direct request
+    const direct = await this.joinRequestRepo.findOne({
       where: { tournament: { id: tournamentId }, player: { id: playerId } },
+      relations: ['player'],
     });
+    if (direct) return direct;
+
+    // Second: check if this player is listed as the doubles partner in someone else's request
+    const player = await this.userRepo.findOne({ where: { id: playerId } });
+    if (!player?.phone) return null;
+
+    const asPartner = await this.joinRequestRepo.findOne({
+      where: { tournament: { id: tournamentId }, partnerPhone: player.phone },
+      relations: ['player'],
+    });
+    if (!asPartner) return null;
+
+    // Return the request with a flag indicating they are the partner (not the requester)
+    return Object.assign(asPartner, { isPartner: true });
+  }
+
+  async getMyMatch(
+    tournamentId: string,
+    playerId: string,
+  ): Promise<{ hasFixtures: boolean; scheduledAt: string | null; round: string | null; opponentName: string | null }> {
+    // Check if the tournament has any matches at all (fixtures generated)
+    const matchCount = await this.matchRepo.count({
+      where: { tournament: { id: tournamentId } },
+    });
+
+    if (matchCount === 0) {
+      return { hasFixtures: false, scheduledAt: null, round: null, opponentName: null };
+    }
+
+    // Try to find a match where the approved player's team is involved.
+    // Since join requests don't automatically create teams, we look for a match
+    // whose teamA or teamB is owned by this player.
+    const myMatches = await this.matchRepo.find({
+      where: [
+        { tournament: { id: tournamentId }, teamA: { owner: { id: playerId } } },
+        { tournament: { id: tournamentId }, teamB: { owner: { id: playerId } } },
+      ],
+      relations: ['teamA', 'teamA.owner', 'teamB', 'teamB.owner'],
+      order: { scheduledAt: 'ASC' },
+    });
+
+    if (myMatches.length === 0) {
+      // Fixtures exist but no specific match found for this player yet
+      return { hasFixtures: true, scheduledAt: null, round: null, opponentName: null };
+    }
+
+    const match = myMatches[0];
+    const isTeamA = match.teamA.owner?.id === playerId;
+    const opponent = isTeamA ? match.teamB : match.teamA;
+    const opponentName = opponent.name ?? opponent.owner?.fullName ?? null;
+
+    return {
+      hasFixtures: true,
+      scheduledAt: match.scheduledAt ? match.scheduledAt.toISOString() : null,
+      round: match.round,
+      opponentName,
+    };
   }
 
   async reviewJoinRequest(

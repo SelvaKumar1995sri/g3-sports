@@ -23,14 +23,14 @@ export class BracketService {
     return p;
   }
 
-  async generate(tournamentId: string, sport: SportType): Promise<BracketMatch[]> {
+  async generate(tournamentId: string, sport: SportType, skipDeadlineCheck = false): Promise<BracketMatch[]> {
     const existing = await this.bmRepo.findOne({ where: { tournament: { id: tournamentId } } });
     if (existing) throw new BadRequestException('Bracket already generated for this tournament');
 
-    // Check registration deadline
+    // Check registration deadline (skip when called internally by the scheduler)
     const tournament = await this.tournamentRepo.findOneBy({ id: tournamentId });
     if (!tournament) throw new NotFoundException('Tournament not found');
-    if (tournament.registrationDeadline) {
+    if (!skipDeadlineCheck && tournament.registrationDeadline) {
       const deadlineEnd = new Date(tournament.registrationDeadline);
       deadlineEnd.setUTCHours(23, 59, 59, 999); // treat as end of day UTC
       if (new Date() <= deadlineEnd) {

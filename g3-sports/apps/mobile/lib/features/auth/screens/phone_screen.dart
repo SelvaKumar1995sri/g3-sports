@@ -21,8 +21,9 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
   bool _loading          = false;
   bool _checkingUsername = false;
   bool _checkingPhone    = false;
-  bool? _usernameAvailable;
-  bool? _phoneAvailable;   // null=unchecked, true=available, false=taken
+  bool? _usernameAvailable;   // null=unchecked, true=available, false=taken (API confirmed)
+  bool  _usernameTooShort = false; // true when < 3 chars typed
+  bool? _phoneAvailable;
   String? _error;
   Timer? _usernameDebounce;
   Timer? _phoneDebounce;
@@ -77,15 +78,16 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
     final clean = value.trim().toLowerCase();
 
     if (clean.isEmpty) {
-      setState(() { _usernameAvailable = null; });
+      setState(() { _usernameAvailable = null; _usernameTooShort = false; });
       return;
     }
     if (clean.length < 3) {
-      setState(() { _usernameAvailable = false; });
+      // Too short — NOT "taken", just too short
+      setState(() { _usernameAvailable = null; _usernameTooShort = true; _checkingUsername = false; });
       return;
     }
 
-    setState(() { _checkingUsername = true; _usernameAvailable = null; });
+    setState(() { _checkingUsername = true; _usernameAvailable = null; _usernameTooShort = false; });
 
     _usernameDebounce = Timer(const Duration(milliseconds: 600), () async {
       try {
@@ -222,19 +224,21 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                   prefix: '@',
                   borderColor: _usernameAvailable == true
                       ? const Color(0xFFA3E635)
-                      : _usernameAvailable == false
+                      : (_usernameAvailable == false && !_usernameTooShort)
                           ? Colors.redAccent
                           : null,
                   suffix: _checkingUsername
                       ? _spinner()
                       : _usernameAvailable == true
                           ? const Icon(Icons.check_circle, color: Color(0xFFA3E635))
-                          : _usernameAvailable == false
+                          : (_usernameAvailable == false && !_usernameTooShort)
                               ? const Icon(Icons.cancel, color: Colors.redAccent)
                               : null,
                 ),
               ),
-              if (_usernameAvailable == false)
+              if (_usernameTooShort)
+                _hint('Minimum 3 characters required', Colors.orange),
+              if (!_usernameTooShort && _usernameAvailable == false)
                 _hint('Username already taken — try another', Colors.redAccent),
               if (_usernameAvailable == true)
                 _hint('✓ Username available!', const Color(0xFFA3E635)),
